@@ -3,6 +3,7 @@ package com.store.popup.member.controller;
 
 import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
+import com.store.popup.member.dto.EmailVerificationDto;
 import com.store.popup.member.dto.MemberLoginDto;
 import com.store.popup.member.dto.MemberSaveReqDto;
 import com.store.popup.member.service.MemberAuthService;
@@ -20,6 +21,30 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberAuthController {
 
     private final MemberAuthService memberService;
+
+    // 인증번호 전송
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody EmailVerificationDto verificationDto) {
+        memberService.sendVerificationEmail(verificationDto.getEmail());
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "인증 코드 전송 성공", null));
+    }
+    // 이메일 인증
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody EmailVerificationDto verificationDto) {
+        try {
+            boolean isVerified = memberService.verifyEmail(verificationDto.getEmail(), verificationDto.getCode());
+            if (isVerified) {
+                return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이메일 인증 성공", null));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new CommonResDto(HttpStatus.BAD_REQUEST, "이메일 인증에 실패했습니다.", null));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "이메일 인증에 실패했습니다: " + e.getMessage(), null));
+        }
+    }
 
     // 회원가입
     @PostMapping("/sign")

@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Random;
+
 @Service
 @RequiredArgsConstructor
 public class MemberAuthService {
@@ -20,7 +22,29 @@ public class MemberAuthService {
     private final S3ClientFileUpload s3ClientFileUpload;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisEmailService redisEmailService;
+    private final EmailService emailService;
 
+    private String generateVerificationCode() {
+        Random random = new Random();
+        int code = random.nextInt(9999 - 1000 + 1) + 1000;
+        return String.valueOf(code);
+    }
+
+    // 이메일 인증
+    public boolean verifyEmail(String email, String code) {
+        if (redisEmailService.verifyCode(email, code)) {
+            return true;
+        } else {
+            throw new RuntimeException("인증 코드가 유효하지 않습니다.");
+        }
+    }
+    // 이메일 인증
+    public void sendVerificationEmail(String email) {
+        String code = generateVerificationCode();
+        redisEmailService.saveVerificationCode(email, code);
+        emailService.sendSimpleMessage(email, "이메일 인증 코드", "인증 코드: " + code);
+    }
     // 회원가입 및 검증
     public void create(MemberSaveReqDto saveReqDto, MultipartFile imageSsr) {
         validateRegistration(saveReqDto);
