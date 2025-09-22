@@ -2,6 +2,8 @@ package com.store.popup.member.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -11,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisEmailService {
     // 레디스 이메일 인증
     private final RedisTemplate<String, Object> redisTemplate;
+    private final JavaMailSender emailSender;
 
     public void saveVerificationCode(String memberEmail, String code) {
         if (memberEmail == null || code == null) {
@@ -31,6 +34,15 @@ public class RedisEmailService {
             return true;
         }
         return false;
+    }
+
+    // 이메일 인증번호 전송
+    public void sendSimpleMessage(String to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        emailSender.send(message);
     }
 
 }
