@@ -26,6 +26,9 @@ public class BaseTimeEntity {
     public void setDeletedTimeAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+    public void updateDeleteAt(){
+        this.deletedAt = LocalDateTime.now();
+    }
 
     public void acceptHospitalAdmin(){
         this.deletedAt = null;

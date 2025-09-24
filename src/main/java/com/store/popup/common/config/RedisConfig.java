@@ -1,5 +1,6 @@
 package com.store.popup.common.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -37,39 +38,31 @@ public class RedisConfig {
         template.setValueSerializer(new StringRedisSerializer());
         return template;
     }
-
-//    // ses 메일
 //    @Bean
-//    public LettuceConnectionFactory lettuceConnectionFactory() {
-//        LettuceClientConfiguration lettuceClientConfiguration = LettuceClientConfiguration.builder()
-//                .shutdownTimeout(Duration.ZERO)
-//                .build();
-//        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(host, port);
-//        redisStandaloneConfiguration.setDatabase(2);
-//        return new LettuceConnectionFactory(redisStandaloneConfiguration, lettuceClientConfiguration);
-//    }
-//
-//    // ses 메일
-//    @Bean
-//    public RedisTemplate<Object, Object> redisTemplate() {
-//        RedisTemplate<Object, Object> template = new RedisTemplate<>();
-//        template.setConnectionFactory(lettuceConnectionFactory());
+//    @Qualifier("7")
+//    public RedisTemplate<String, Object> redisTemplateRoom7(RedisConnectionFactory connectionFactory) {
+//        RedisTemplate<String, Object> template = new RedisTemplate<>();
+//        template.setConnectionFactory(connectionFactory);
 //        template.setKeySerializer(new StringRedisSerializer());
-//        template.setHashKeySerializer(new StringRedisSerializer());
-//        template.setValueSerializer(new StringRedisSerializer());
+//        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 //        return template;
 //    }
-//
-//    // ses 메일
-//    @Bean
-//    public CacheManager cacheManager() {
-//        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
-//                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-//                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-//                .entryTtl(Duration.ofMinutes(2))
-//                .disableCachingNullValues();
-//        return RedisCacheManager.builder(lettuceConnectionFactory())
-//                .cacheDefaults(configuration)
-//                .build();
-//    }
+    // DB 7 전용 ConnectionFactory
+    @Bean(name = "redisConnectionFactoryDb7")
+    public LettuceConnectionFactory redisConnectionFactoryDb7() {
+        RedisStandaloneConfiguration conf = new RedisStandaloneConfiguration(host, port);
+        conf.setDatabase(7); // ← 여기서 '7번 방' 지정
+        return new LettuceConnectionFactory(conf, LettuceClientConfiguration.builder().build());
+    }
+
+    // DB 7 전용 Template
+    @Bean(name = "redisTemplateDb7")
+    public RedisTemplate<String, Object> redisTemplateDb7(
+            @Qualifier("redisConnectionFactoryDb7") RedisConnectionFactory cf) {
+        RedisTemplate<String, Object> t = new RedisTemplate<>();
+        t.setConnectionFactory(cf);
+        t.setKeySerializer(new StringRedisSerializer());
+        t.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return t;
+    }
 }
