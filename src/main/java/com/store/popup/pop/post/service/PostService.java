@@ -42,7 +42,7 @@ public class PostService {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
         MultipartFile postImage = dto.getPostImage(); //게시글 사진
-        Member member = memberRepository.findByMemberEmailOrThrow(memberEmail);
+        Member member = findMemberByEmail(memberEmail);
         String profileImgUrl = member.getProfileImgUrl();
         int reportCount = member.getReportCount();
 
@@ -64,8 +64,9 @@ public class PostService {
     }
 
     // 게시글 리스트
+    @Transactional(readOnly = true)
     public List<PostListDto> postList(){
-        List<Post> posts = postRepository.findByDeletedTimeAtIsNull();
+        List<Post> posts = postRepository.findByDeletedAtIsNull();
         // Post -> PostListDto로 변환
         return posts.stream().map(post -> {
             Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
@@ -74,10 +75,12 @@ public class PostService {
         }).collect(Collectors.toList());   // 리스트로 변환
     }
 
-    // my post list !
+    // 내가 작성한 팝업 게시글 목록
+    @Transactional(readOnly = true)
     public Page<PostListDto> myPostList(Pageable pageable){
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Page<Post> posts = postRepository.findByMemberEmailAndDeletedTimeAtIsNull(memberEmail, pageable);
+        Member member = findMemberByEmail(memberEmail);
+        Page<Post> posts = postRepository.findByMemberAndDeletedAtIsNull(member, pageable);
         return posts.map(post -> {
             Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
             Long likeCount = getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
@@ -85,6 +88,8 @@ public class PostService {
         });
     }
 
+    // 팝업 게시글 상세
+    @Transactional(readOnly = true)
     public PostDetailDto getPostDetail(Long id){
 
         Post post = postRepository.findById(id)
@@ -104,7 +109,7 @@ public class PostService {
     public void updatePost(Long id, PostUpdateReqDto dto){
         Post post = postRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 Post입니다."));
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member member = memberRepository.findByMemberEmailOrThrow(memberEmail);
+        Member member = findMemberByEmail(memberEmail);
         int reportCount = member.getReportCount();
 
         // 신고 횟수가 5 이상일 경우 예외 처리
@@ -124,7 +129,7 @@ public class PostService {
     public void deletePost(Long id){
         Post post = postRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 post입니다."));
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member member = memberRepository.findByMemberEmailOrThrow(memberEmail);
+        Member member = findMemberByEmail(memberEmail);
         int reportCount = member.getReportCount();
         if (reportCount >= 5) {
             throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 삭제할 수 없습니다.");
@@ -200,9 +205,9 @@ public class PostService {
         }
     }
 
-//   좋아요 많은 게시글
+    //   좋아요 많은 게시글
     public List<PostListDto> famousPostList() {
-        List<Post> posts = postRepository.findByDeletedTimeAtIsNull();
+        List<Post> posts = postRepository.findByDeletedAtIsNull();
         // Post -> PostListDto로 변환
         List<PostListDto> postListDtoList = posts.stream().map(post -> {
             Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
@@ -215,6 +220,12 @@ public class PostService {
             postListDtoList = postListDtoList.subList(0,3);
         }
         return postListDtoList;
+    }
+
+    // 멤버 객체 반환
+    private Member findMemberByEmail(String email){
+        Member member = findMemberByEmail(email);
+        return member;
     }
 }
 

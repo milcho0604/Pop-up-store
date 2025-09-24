@@ -11,13 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminMemberServcie {
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
     // 멤버 전체 목록 조회 -> 멤버 필터
+    @Transactional(readOnly = true)
     public Page<MemberListResDto> memberList(String email, String roleString, Pageable pageable) {
         Role role = null;
         Member member = memberRepository.findByMemberEmailOrThrow(email);

@@ -72,7 +72,6 @@ public class Post extends BaseTimeEntity {
         return this;
     }
 
-
     // 조회수 업데이트 메서드
     public void updateViewCount(Long viewCount) {
         this.viewCount = (viewCount != null) ? viewCount : 0L; // null이면 0L로 처리

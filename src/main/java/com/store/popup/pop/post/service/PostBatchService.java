@@ -2,112 +2,131 @@ package com.store.popup.pop.post.service;
 
 import com.store.popup.pop.post.domain.Post;
 import com.store.popup.pop.post.repository.PostRepository;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostBatchService {
 
     private final PostRepository postRepository;
-    @Qualifier("redisTemplateDb7")
-    private final RedisTemplate<String, Object> redisTemplate;
 
+    /** DB7 전용 템플릿 주입 */
+    private final @Qualifier("redisTemplateDb7") RedisTemplate<String, Object> redisTemplate;
 
+    private static final String K_VIEWS       = "post:views:";
+    private static final String K_VIEWS_USERS = "post:views:users:";
+    private static final String K_LIKES       = "post:likes:";
+    private static final String K_LIKES_USERS = "post:likes:users:";
 
-//     12시간마다 실행: 12시간(43200000ms) 간격으로 스케줄 실행
-    @Scheduled(fixedRate = 43200000)
-    // 1분마다 실행
-//    @Scheduled(fixedRate = 60000)
+    private static final Pattern P_ID = Pattern.compile("^post:(views|likes)(:users)?:([0-9]+)$");
+
+    private Long asLong(Object v) { return (v instanceof Number) ? ((Number) v).longValue() : 0L; }
+
+    /** KEYS → SCAN (비차단 순회) */
+    private Set<String> scanKeys(String pattern, long countHint) {
+        return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+            Set<String> results = new HashSet<>();
+            ScanOptions options = ScanOptions.scanOptions()
+                    .match(pattern)
+                    .count(countHint)   // 힌트값(보장 아님)
+                    .build();
+            try (Cursor<byte[]> cursor = connection.scan(options)) {
+                while (cursor.hasNext()) {
+                    results.add(new String(cursor.next(), StandardCharsets.UTF_8));
+                }
+            }
+            return results;
+        });
+    }
+
+    private Long extractPostIdStrict(String key) {
+        var m = P_ID.matcher(key);
+        if (m.matches()) return Long.parseLong(m.group(3));
+        throw new IllegalArgumentException("Unexpected Redis key: " + key);
+    }
+
+    private Long getViewsFromRedis(Long postId) {
+        Object v = redisTemplate.opsForValue().get(K_VIEWS + postId);
+        return asLong(v);
+    }
+
+    private Long getLikesFromRedis(Long postId) {
+        Object v = redisTemplate.opsForSet().size(K_LIKES + postId);
+        return asLong(v);
+    }
+
+    /**
+     * 이전 실행이 끝난 뒤 12시간 대기 후 재실행 (겹침 방지)
+     * 운영 다중 인스턴스라면 ShedLock 등 분산락 추가 권장
+     */
+    @Scheduled(fixedDelay = 43200000)
     @Transactional
     public void updatePostViewsAndLikesToDB() {
-        Set<String> keys = redisTemplate.keys("post:*");
+        // views/likes 각각 스캔 (users 키는 코드에서 필터링)
+        Set<String> viewKeys = scanKeys("post:views:*", 1000);
+        Set<String> likeKeys = scanKeys("post:likes:*", 1000);
 
-        if (keys != null) {
-            for (String key : keys) {
-                if (key.startsWith("post:views:")) {
-                    Long postId = extractPostId(key);
-                    Long views = getPostViewsFromRedis(postId);
-                    if (views != null && views > 0) {
-                        Post post = postRepository.findById(postId)
-                                .orElse(null);  // 게시글이 없을 때 null 반환
-                        if (post != null) {
-                            post.updateViewCount(views);
-                            postRepository.save(post);
-                        } else {
-                            // 게시글이 없는 경우 Redis에서 해당 키 삭제
-                            System.out.println("Post not found: " + postId + ". Deleting Redis key: " + key);
-                            redisTemplate.delete(key);
-                        }
-                    }
-                }
-
-                if (key.startsWith("post:likes:")) {
-                    Long postId = extractPostId(key);
-                    Long likes = getPostLikesFromRedis(postId);
-                    if (likes != null && likes > 0) {
-                        Post post = postRepository.findById(postId)
-                                .orElse(null);  // 게시글이 없을 때 null 반환
-                        if (post != null) {
-                            post.updateLikeCount(likes);
-                            postRepository.save(post);
-                        } else {
-                            // 게시글이 없는 경우 Redis에서 해당 키 삭제
-                            System.out.println("Post not found: " + postId + ". Deleting Redis key: " + key);
-                            redisTemplate.delete(key);
-                        }
-                    }
-                }
-            }
+        // 키 → id 매핑
+        Map<Long, Long> viewMap = new HashMap<>();
+        for (String key : viewKeys) {
+            if (key.startsWith(K_VIEWS_USERS)) continue; // users 세트는 건너뜀
+            Long id = extractPostIdStrict(key);
+            Long views = getViewsFromRedis(id);
+            if (views != null && views >= 0) viewMap.put(id, views);
         }
-    }
 
-    // Redis에서 조회수 가져오기
-    private Long getPostViewsFromRedis(Long postId) {
-        String key = "post:views:" + postId;
-        Object value = redisTemplate.opsForValue().get(key);
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();
-        } else if (value instanceof Long) {
-            return (Long) value;
+        Map<Long, Long> likeMap = new HashMap<>();
+        for (String key : likeKeys) {
+            if (key.startsWith(K_LIKES_USERS)) continue; // users 세트는 건너뜀
+            Long id = extractPostIdStrict(key);
+            Long likes = getLikesFromRedis(id);
+            if (likes != null && likes >= 0) likeMap.put(id, likes);
         }
-        // 기본값을 0으로 설정하여 null 방지
-        return 0L;
-    }
 
-    // Redis에서 좋아요 수 가져오기
-    private Long getPostLikesFromRedis(Long postId) {
-        String key = "post:likes:" + postId;
-        Object value = redisTemplate.opsForSet().size(key);
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();
-        } else if (value instanceof Long) {
-            return (Long) value;
-        }
-        // 기본값을 0으로 설정하여 null 방지
-        return 0L;
-    }
+        if (viewMap.isEmpty() && likeMap.isEmpty()) return;
 
-    // Redis 키에서 Post ID 추출
-    public Long extractPostId(String redisKey) {
-        try {
-            // Redis key에서 숫자만 추출
-            String[] parts = redisKey.split(":");
-            for (String part : parts) {
-                if (part.matches("\\d+")) { // 숫자인지 확인
-                    return Long.parseLong(part); // 숫자만 Long으로 변환
-                }
-            }
-            throw new NumberFormatException("유효한 Post ID를 찾을 수 없습니다.");
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Post ID를 추출하는데 실패했습니다. Redis Key: " + redisKey, e);
+        // DB에서 대상 포스트 일괄 조회
+        List<Long> ids = Stream.concat(viewMap.keySet().stream(), likeMap.keySet().stream())
+                .distinct().collect(Collectors.toList());
+
+        List<Post> posts = postRepository.findAllById(ids);
+        if (posts.isEmpty()) return;
+
+        for (Post p : posts) {
+            Long id = p.getId();
+            Long v = viewMap.get(id);
+            Long l = likeMap.get(id);
+            if (v != null && v >= 0) p.updateViewCount(v);   // Redis의 누적값을 DB와 동기화
+            if (l != null && l >= 0) p.updateLikeCount(l);   // 동일
         }
+
+        postRepository.saveAll(posts);
+
+        // 정책상 Redis 값을 유지(=실시간 노출)하고, DB만 동기화한다.
+        // 만약 “배치 후 Redis 초기화”가 필요하면 아래 주석을 해제하고 정책에 맞게 조정.
+        // for (Long id : viewMap.keySet()) {
+        //     redisTemplate.delete(K_VIEWS + id);
+        //     // users 세트를 삭제하면 동일 사용자의 재조회가 다시 카운팅되므로, 보통 유지한다.
+        // }
+        // for (Long id : likeMap.keySet()) {
+        //     redisTemplate.delete(K_LIKES + id);
+        //     // users 세트 삭제 시 중복 좋아요 재발생 여지 → 유지 권장
+        // }
     }
 }
