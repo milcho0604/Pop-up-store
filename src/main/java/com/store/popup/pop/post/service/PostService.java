@@ -1,5 +1,6 @@
 package com.store.popup.pop.post.service;
 
+import com.store.popup.common.enumdir.Role;
 import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,11 +40,13 @@ public class PostService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public void create(PostSaveDto dto){
+    public void create(PostSaveDto dto) throws AccessDeniedException {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        MultipartFile postImage = dto.getPostImage(); //게시글 사진
         Member member = findMemberByEmail(memberEmail);
+        if (!member.getRole().equals(Role.ADMIN)) {
+            throw new AccessDeniedException("관리자 권한이 필요합니다.");
+        }
+        MultipartFile postImage = dto.getPostImage(); //게시글 사진
         String profileImgUrl = member.getProfileImgUrl();
         int reportCount = member.getReportCount();
 
