@@ -2,6 +2,7 @@ package com.store.popup.pop.post.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
 
+import com.store.popup.member.domain.Member;
 import com.store.popup.pop.post.dto.PostListDto;
 import com.store.popup.pop.post.dto.PostUpdateReqDto;
 import com.store.popup.pop.report.domain.Report;
@@ -25,8 +26,6 @@ public class Post extends BaseTimeEntity {
     @Column(name = "post_id")
     private Long id;
     @Column(nullable = false)
-    private String memberEmail;
-    @Column(nullable = false)
     private String title;
     @Column(nullable = false, length = 3000)
     private String content;
@@ -35,9 +34,12 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private Long likeCount = 0L;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     private String profileImgUrl;
 
-    private String memberName;
 
     private@Builder.Default
     Long viewCount = 0L;
@@ -50,7 +52,7 @@ public class Post extends BaseTimeEntity {
         return PostListDto.builder()
                 .id(this.id)
                 .title(this.title)
-                .memberEmail(this.memberEmail)
+                .memberEmail(this.member.getMemberEmail())
                 .content(this.content)
                 .likeCount(likeCount != null ? likeCount : 0)
                 .viewCount(viewCount != null ? viewCount : 0)

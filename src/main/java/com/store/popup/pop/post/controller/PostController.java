@@ -2,7 +2,10 @@ package com.store.popup.pop.post.controller;
 
 import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
-import com.store.popup.pop.post.dto.PostsaveDto;
+import com.store.popup.pop.post.dto.PostDetailDto;
+import com.store.popup.pop.post.dto.PostListDto;
+import com.store.popup.pop.post.dto.PostSaveDto;
+import com.store.popup.pop.post.dto.PostUpdateReqDto;
 import com.store.popup.pop.post.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> register(@ModelAttribute PostsaveDto dto){
+    public ResponseEntity<?> register(@ModelAttribute PostSaveDto dto){
         try {
             postService.create(dto);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", null);

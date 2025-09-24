@@ -7,7 +7,7 @@ import com.store.popup.pop.post.domain.Post;
 import com.store.popup.pop.post.dto.PostDetailDto;
 import com.store.popup.pop.post.dto.PostListDto;
 import com.store.popup.pop.post.dto.PostUpdateReqDto;
-import com.store.popup.pop.post.dto.PostsaveDto;
+import com.store.popup.pop.post.dto.PostSaveDto;
 import com.store.popup.pop.post.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +38,10 @@ public class PostService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public void create(PostsaveDto dto){
+    public void create(PostSaveDto dto){
+        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
         MultipartFile postImage = dto.getPostImage(); //게시글 사진
-
-        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = memberRepository.findByMemberEmailOrThrow(memberEmail);
         String profileImgUrl = member.getProfileImgUrl();
         int reportCount = member.getReportCount();
@@ -51,15 +50,13 @@ public class PostService {
         if (reportCount >= 5) {
             throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 작성할 수 없습니다.");
         }
-
-        String name = member.getName();
         Post post;
         if(postImage != null){
             String imageUrl = s3ClientFileUpload.upload(postImage);
-            post = dto.toEntity(imageUrl, memberEmail, name, profileImgUrl);
+            post = dto.toEntity(imageUrl, member, profileImgUrl);
             postRepository.save(post);
         }else {
-            post = dto.toEntity(null, memberEmail, name, profileImgUrl);
+            post = dto.toEntity(null, member, profileImgUrl);
             postRepository.save(post);
         }
 

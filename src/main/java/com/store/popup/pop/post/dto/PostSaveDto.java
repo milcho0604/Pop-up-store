@@ -1,5 +1,6 @@
 package com.store.popup.pop.post.dto;
 
+import com.store.popup.member.domain.Member;
 import com.store.popup.pop.post.domain.Post;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostsaveDto {
+public class PostSaveDto {
 
     @NotEmpty(message = "email is essential")
     private String memberEmail;
@@ -36,10 +37,10 @@ public class PostsaveDto {
 
 
 
-    public Post toEntity(String postImgUrl, String memberEmail, String memberName, String profileImgUrl) {
+    public Post toEntity(String postImgUrl, Member member, String profileImgUrl) {
         return Post.builder()
-                .memberEmail(memberEmail)
-                .memberName(memberName)
+                .member(member)
+//                .memberName(member.getMemberName())
                 .title(this.title)
                 .content(this.content)
                 .postImgUrl(postImgUrl)

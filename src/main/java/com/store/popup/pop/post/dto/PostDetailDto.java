@@ -1,5 +1,6 @@
 package com.store.popup.pop.post.dto;
 
+import com.store.popup.member.domain.Member;
 import com.store.popup.pop.post.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,8 +30,8 @@ public class PostDetailDto {
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
         return PostDetailDto.builder()
                 .id(post.getId())
-                .memberEmail(post.getMemberEmail())
-                .name(post.getMemberName())
+                .memberEmail(post.getMember().getMemberEmail())
+                .name(post.getMember().getName())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .postImgUrl(post.getPostImgUrl())
