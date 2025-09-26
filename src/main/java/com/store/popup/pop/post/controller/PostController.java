@@ -2,6 +2,7 @@ package com.store.popup.pop.post.controller;
 
 import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
+import com.store.popup.pop.post.domain.Post;
 import com.store.popup.pop.post.dto.PostDetailDto;
 import com.store.popup.pop.post.dto.PostListDto;
 import com.store.popup.pop.post.dto.PostSaveDto;
@@ -28,8 +29,8 @@ public class PostController {
     @PostMapping("/create")
     public ResponseEntity<?> register(@ModelAttribute PostSaveDto dto){
         try {
-            postService.create(dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", null);
+            Post createdPost = postService.create(dto);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", createdPost);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         }catch (IllegalArgumentException e){
             e.printStackTrace();
@@ -40,6 +41,7 @@ public class PostController {
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "post 등록 실패" + e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
+
     }
 
     @GetMapping("/list")

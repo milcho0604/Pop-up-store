@@ -40,7 +40,7 @@ public class PostService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public void create(PostSaveDto dto) throws AccessDeniedException {
+    public Post create(PostSaveDto dto) throws AccessDeniedException {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = findMemberByEmail(memberEmail);
         if (!member.getRole().equals(Role.ADMIN)) {
@@ -58,13 +58,13 @@ public class PostService {
         if(postImage != null){
             String imageUrl = s3ClientFileUpload.upload(postImage);
             post = dto.toEntity(imageUrl, member, profileImgUrl);
-            postRepository.save(post);
+            post = postRepository.save(post);
         }else {
             post = dto.toEntity(null, member, profileImgUrl);
-            postRepository.save(post);
+            post = postRepository.save(post);
         }
-
-
+        
+        return post;
     }
 
     // 게시글 리스트
@@ -228,8 +228,8 @@ public class PostService {
 
     // 멤버 객체 반환
     private Member findMemberByEmail(String email){
-        Member member = findMemberByEmail(email);
-        return member;
+        return memberRepository.findByMemberEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
     }
 }
 

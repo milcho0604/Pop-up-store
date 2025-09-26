@@ -26,6 +26,15 @@ public class PostDetailDto {
     private Long viewCount;
     private LocalDateTime createdTimeAt;
     private LocalDateTime updatedTimeAt;
+    
+    // 팝업 스토어 운영 기간
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    
+    // 팝업 스토어 주소
+    private String city;
+    private String street;
+    private String zipcode;
 
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
         return PostDetailDto.builder()
@@ -40,6 +49,11 @@ public class PostDetailDto {
                 .viewCount(viewCount != null ? viewCount : 0)
                 .createdTimeAt(post.getCreatedAt())
                 .updatedTimeAt(post.getUpdatedAt())
+                .startDate(post.getStartDate())
+                .endDate(post.getEndDate())
+                .city(post.getAddress() != null ? post.getAddress().getCity() : null)
+                .street(post.getAddress() != null ? post.getAddress().getStreet() : null)
+                .zipcode(post.getAddress() != null ? post.getAddress().getZipcode() : null)
                 .build();
     }
 
