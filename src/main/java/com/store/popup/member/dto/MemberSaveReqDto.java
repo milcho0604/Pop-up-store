@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class MemberSaveReqDto {
     private String name;
+    private String nickname;
     private String memberEmail;
     private String password;
     private String profileImgUrl;
@@ -33,6 +34,7 @@ public class MemberSaveReqDto {
         return Member.builder()
                 .password(password)
                 .name(this.name)
+                .nickname(this.nickname)
                 .memberEmail(this.memberEmail)
                 .profileImgUrl(this.profileImgUrl)
                 .phoneNumber(this.phoneNumber)

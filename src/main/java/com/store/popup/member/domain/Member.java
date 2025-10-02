@@ -25,6 +25,8 @@ public class Member extends BaseTimeEntity {
 
     private String name;
 
+    private String nickname;
+
     @Column(nullable = false, unique = true)
     private String memberEmail;
 
@@ -53,11 +55,6 @@ public class Member extends BaseTimeEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    private String bio;
-
-    private Long hospitalId;
-
 
     private String fcmToken;
 
@@ -111,6 +108,11 @@ public class Member extends BaseTimeEntity {
         this.name = newName;
     }
 
+    // 닉네임 변경
+    public void changeNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
     // 전화번호 변경
     public void changePhoneNumber(String newPhoneNumber) {
         this.phoneNumber = newPhoneNumber;
@@ -124,16 +126,6 @@ public class Member extends BaseTimeEntity {
     // 비밀번호 변경
     public void changePassword(String newPassword) {
         this.password = newPassword;
-    }
-
-    // 의사 약력 변경
-    public void changeBio(String newBio) {
-        this.bio = newBio;
-    }
-
-    //의사 소속된 병원 변경
-    public void changeHospitalId(Long hospitalId) {
-        this.hospitalId = hospitalId;
     }
 
     public String getRoleKey() {

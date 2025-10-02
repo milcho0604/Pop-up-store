@@ -70,6 +70,7 @@ public class Post extends BaseTimeEntity {
                 .id(this.id)
                 .title(this.title)
                 .memberEmail(this.member.getMemberEmail())
+                .memberNickname(this.member.getNickname())
                 .content(this.content)
                 .likeCount(likeCount != null ? likeCount : 0)
                 .viewCount(viewCount != null ? viewCount : 0)

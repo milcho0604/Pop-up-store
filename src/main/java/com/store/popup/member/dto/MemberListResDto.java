@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class MemberListResDto {
     private Long id;
     private String name;
+    private String nickname;
     private String phone;
     private Address address;
     private String memberEmail;
@@ -28,9 +29,10 @@ public class MemberListResDto {
     private boolean isVerified;
 
     // 생성자
-    public MemberListResDto(Long id, String name, String memberEmail, String phone, Address address, boolean isVerified, LocalDateTime deletedAt, Role role) {
+    public MemberListResDto(Long id, String name, String nickname, String memberEmail, String phone, Address address, boolean isVerified, LocalDateTime deletedAt, Role role) {
         this.id = id;
         this.name = name;
+        this.nickname = nickname;
         this.memberEmail = memberEmail;
         this.address = address;
         this.phone = phone;
@@ -43,6 +45,7 @@ public class MemberListResDto {
         return new MemberListResDto(
                 member.getId(),
                 member.getName(),
+                member.getNickname(),
                 member.getMemberEmail(),
                 member.getPhoneNumber(),
                 member.getAddress(),

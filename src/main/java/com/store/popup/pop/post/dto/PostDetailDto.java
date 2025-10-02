@@ -18,6 +18,7 @@ public class PostDetailDto {
     private Long id;
     private String memberEmail;
     private String name;
+    private String nickname;
     private String title;
     private String content;
     private String profileImgUrl;
@@ -41,6 +42,7 @@ public class PostDetailDto {
                 .id(post.getId())
                 .memberEmail(post.getMember().getMemberEmail())
                 .name(post.getMember().getName())
+                .nickname(post.getMember().getNickname())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .postImgUrl(post.getPostImgUrl())

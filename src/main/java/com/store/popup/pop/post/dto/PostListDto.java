@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class PostListDto {
     private Long id;
     private String memberEmail;
+    private String memberNickname;
     private String title;
     private String content;
     private Long likeCount;

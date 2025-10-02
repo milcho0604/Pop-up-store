@@ -29,8 +29,7 @@ public class PostController {
     @PostMapping("/create")
     public ResponseEntity<?> register(@ModelAttribute PostSaveDto dto){
         try {
-            Post createdPost = postService.create(dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", createdPost);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", dto);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         }catch (IllegalArgumentException e){
             e.printStackTrace();
