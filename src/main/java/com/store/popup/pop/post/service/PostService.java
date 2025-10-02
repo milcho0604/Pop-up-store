@@ -13,10 +13,8 @@ import com.store.popup.pop.post.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +33,8 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final PostMetricsService postMetricsService;
 //    private final CommentService commentService;
-    @Qualifier("redisTemplateDb7")
-    private final RedisTemplate<String, Object> redisTemplate;
 
 
     public Post create(PostSaveDto dto) throws AccessDeniedException {
@@ -73,8 +70,8 @@ public class PostService {
         List<Post> posts = postRepository.findByDeletedAtIsNull();
         // Post -> PostListDto로 변환
         return posts.stream().map(post -> {
-            Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
-            Long likeCount = getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
+            Long viewCount = postMetricsService.getPostViews(post.getId());   // Redis에서 조회수 가져오기
+            Long likeCount = postMetricsService.getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
             return post.listFromEntity(viewCount, likeCount);   // 조회수와 좋아요 수를 포함한 DTO로 변환
         }).collect(Collectors.toList());   // 리스트로 변환
     }
@@ -86,8 +83,8 @@ public class PostService {
         Member member = findMemberByEmail(memberEmail);
         Page<Post> posts = postRepository.findByMemberAndDeletedAtIsNull(member, pageable);
         return posts.map(post -> {
-            Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
-            Long likeCount = getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
+            Long viewCount = postMetricsService.getPostViews(post.getId());   // Redis에서 조회수 가져오기
+            Long likeCount = postMetricsService.getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
             return post.listFromEntity(viewCount, likeCount);   // 조회수와 좋아요 수를 포함한 DTO로 변환
         });
     }
@@ -101,9 +98,9 @@ public class PostService {
 
 
         // 조회수 증가 로직 추가
-        incrementPostViews(id);
-        Long viewCount = getPostViews(id);
-        Long likeCount = getPostLikesCount(id);
+        postMetricsService.incrementPostViews(id);
+        Long viewCount = postMetricsService.getPostViews(id);
+        Long likeCount = postMetricsService.getPostLikesCount(id);
 
         PostDetailDto postDetailDto = PostDetailDto.fromEntity(post, viewCount, likeCount);
         return postDetailDto;
@@ -139,91 +136,6 @@ public class PostService {
             throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 삭제할 수 없습니다.");
         }
         post.updateDeleteAt();
-    }
-
-    // Redis 조회수 증가 로직
-    public void incrementPostViews(Long postId) {
-        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        String key = "post:views:" + postId;
-        String userKey = "post:views:users:" + postId;
-
-        Boolean hasViewed = redisTemplate.opsForSet().isMember(userKey, memberEmail);
-        if (!Boolean.TRUE.equals(hasViewed)) {
-            redisTemplate.opsForValue().increment(key, 1);  // 조회수 1 증가
-            redisTemplate.opsForSet().add(userKey, memberEmail);  // 중복 방지용 유저 이메일 저장 추후 추가할 수 있음
-        }
-    }
-
-    // Redis 조회수 조회
-    public Long getPostViews(Long postId) {
-        String key = "post:views:" + postId;
-        Object value = redisTemplate.opsForValue().get(key);
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();  // Integer를 Long으로 변환
-        } else if (value instanceof Long) {
-            return (Long) value;
-        } else {
-            return 0L;
-        }
-    }
-
-
-    // Redis 좋아요 추가
-    public void likePost(Long postId) {
-        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        String key = "post:likes:" + postId;
-        String userKey = "post:likes:users:" + postId;
-
-        Boolean hasLiked = redisTemplate.opsForSet().isMember(userKey, memberEmail);
-        if (!Boolean.TRUE.equals(hasLiked)) {
-            redisTemplate.opsForSet().add(key, memberEmail);  // 좋아요 누른 사용자 저장
-            redisTemplate.opsForSet().add(userKey, memberEmail);  // 중복 방지용 이메일 저장
-        }
-    }
-
-    // Redis 좋아요 취소
-    public void unlikePost(Long postId) {
-        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        String key = "post:likes:" + postId;
-        String userKey = "post:likes:users:" + postId;
-
-        Boolean hasLiked = redisTemplate.opsForSet().isMember(userKey, memberEmail);
-        if (Boolean.TRUE.equals(hasLiked)) {
-            redisTemplate.opsForSet().remove(key, memberEmail);  // 좋아요 취소
-            redisTemplate.opsForSet().remove(userKey, memberEmail);  // 중복 방지 이메일 제거
-        }
-    }
-
-    // Redis 좋아요 수 조회
-    public Long getPostLikesCount(Long postId) {
-        String key = "post:likes:" + postId;
-        Object value = redisTemplate.opsForSet().size(key);
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();  // Integer를 Long으로 변환
-        } else if (value instanceof Long) {
-            return (Long) value;
-        } else {
-            return 0L;
-        }
-    }
-
-    //   좋아요 많은 게시글
-    public List<PostListDto> famousPostList() {
-        List<Post> posts = postRepository.findByDeletedAtIsNull();
-        // Post -> PostListDto로 변환
-        List<PostListDto> postListDtoList = posts.stream().map(post -> {
-            Long viewCount = getPostViews(post.getId());   // Redis에서 조회수 가져오기
-            Long likeCount = getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
-            return post.listFromEntity(viewCount, likeCount);   // 조회수와 좋아요 수를 포함한 DTO로 변환
-        }).collect(Collectors.toList());// 리스트로 변환
-
-        postListDtoList.sort(Comparator.comparingDouble(PostListDto::getLikeCount).reversed());
-        if (postListDtoList.size() > 3) {
-            postListDtoList = postListDtoList.subList(0,3);
-        }
-        return postListDtoList;
     }
 
     // 멤버 객체 반환

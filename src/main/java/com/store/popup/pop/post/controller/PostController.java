@@ -7,12 +7,15 @@ import com.store.popup.pop.post.dto.PostDetailDto;
 import com.store.popup.pop.post.dto.PostListDto;
 import com.store.popup.pop.post.dto.PostSaveDto;
 import com.store.popup.pop.post.dto.PostUpdateReqDto;
+import com.store.popup.pop.post.service.PostMetricsService;
 import com.store.popup.pop.post.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,7 @@ import java.util.List;
 @RequestMapping("post")
 public class PostController {
     private final PostService postService;
+    private final PostMetricsService postMetricsService;
 
     @PostMapping("/create")
     public ResponseEntity<?> register(@ModelAttribute PostSaveDto dto){
@@ -43,6 +47,7 @@ public class PostController {
 
     }
 
+    // 팝업 목록 조회
     @GetMapping("/list")
     public ResponseEntity<?> postList(){
         List<PostListDto> postListDtos = postService.postList();
@@ -50,13 +55,15 @@ public class PostController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
+    // 조회수 많은 팝업 목록 조회
     @GetMapping("/good/list")
     public ResponseEntity<?> famousPostList(){
-        List<PostListDto> postListDtos = postService.famousPostList();
+        List<PostListDto> postListDtos = postMetricsService.famousPostList();
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 목록을 조회합니다.", postListDtos);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
+    // 내가 작성한 팝업 리스트
     @GetMapping("/my/list")
     public ResponseEntity<?> myPostList(Pageable pageable){
         Page<PostListDto> postListDtos = postService.myPostList(pageable);
@@ -64,6 +71,7 @@ public class PostController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
+    // 포스트 상세 내역
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getPostDetail(@PathVariable Long id){
         try {
@@ -77,6 +85,7 @@ public class PostController {
         }
     }
 
+    // 팝업 수정
     @PostMapping("/update/{id}")
     public ResponseEntity<?> updatePost (@PathVariable Long id, @ModelAttribute PostUpdateReqDto dto){
         try{
@@ -113,8 +122,8 @@ public class PostController {
     @GetMapping("/detail/views/{id}")
     public ResponseEntity<?> getPostViews(@PathVariable Long id) {
         try {
-            postService.incrementPostViews(id); // 조회수 증가
-            Long views = postService.getPostViews(id); // 조회수 조회
+            postMetricsService.incrementPostViews(id); // 조회수 증가
+            Long views = postMetricsService.getPostViews(id); // 조회수 조회
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "조회수를 조회합니다.", views);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -128,8 +137,9 @@ public class PostController {
     @PostMapping("/detail/like/{id}")
     public ResponseEntity<?> likePost(@PathVariable Long id) {
         try {
-            postService.likePost(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 추가되었습니다.", null);
+            postMetricsService.likePost(id);
+            Long like = postMetricsService.getPostLikesCount(id);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 추가되었습니다.", like);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,8 +152,9 @@ public class PostController {
     @PostMapping("/detail/unlike/{id}")
     public ResponseEntity<?> unlikePost(@PathVariable Long id) {
         try {
-            postService.unlikePost(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 취소되었습니다.", null);
+            postMetricsService.unlikePost(id);
+            Long like = postMetricsService.getPostLikesCount(id);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 취소되었습니다.", like);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -156,7 +167,7 @@ public class PostController {
     @GetMapping("/detail/{id}/likes")
     public ResponseEntity<?> getPostLikesCount(@PathVariable Long id) {
         try {
-            Long likesCount = postService.getPostLikesCount(id);
+            Long likesCount = postMetricsService.getPostLikesCount(id);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요 수를 조회합니다.", likesCount);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
