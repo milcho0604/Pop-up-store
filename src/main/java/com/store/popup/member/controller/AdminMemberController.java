@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,25 +22,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminMemberController {
 
     private final AdminMemberServcie adminMemberServcie;
-    // 멤버 리스트 조회
 //    @PreAuthorize("hasRole('ADMIN')")
+    /**
+     * 관리자 회원 리스트 조회
+     *
+     * 예시 요청:
+     * /admin/member/list?isVerified=true&isDeleted=false&role=USER&page=0&size=20
+     */
     @GetMapping("/list")
     public ResponseEntity<?> memberList(
+            @RequestParam(required = false) Boolean isVerified,
+            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(required = false) String role,
             Pageable pageable) {
 
-        String role = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("ROLE_ANONYMOUS")
-                .replace("ROLE_", "");
+        Page<MemberListResDto> memberListResDtos = adminMemberServcie.memberList(isVerified, isDeleted, role, pageable);
 
-        System.out.println("최종 role: " + role);
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Page<MemberListResDto> memberListResDtos = adminMemberServcie.memberList(email, role, pageable);
-
-        CommonResDto dto = new CommonResDto(HttpStatus.OK, "회원목록을 조회합니다.", memberListResDtos);
+        CommonResDto dto = new CommonResDto(HttpStatus.OK, "회원 목록을 조회합니다.", memberListResDtos);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 }
