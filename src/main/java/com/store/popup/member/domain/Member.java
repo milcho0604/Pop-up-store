@@ -40,8 +40,6 @@ public class Member extends BaseTimeEntity {
     //    @Column(nullable = false, unique = true)
     private String phoneNumber;
 
-    //    @Column(nullable = false)
-    private String ssn;
 
     //    @Column(nullable = false)
     @Column(length = 255)

@@ -20,7 +20,6 @@ public class MemberSaveReqDto {
     private String password;
     private String profileImgUrl;
     private String phoneNumber;
-    private String ssn;
     private Address address;
     private MultipartFile profileImage;
 
@@ -39,7 +38,6 @@ public class MemberSaveReqDto {
                 .profileImgUrl(this.profileImgUrl)
                 .phoneNumber(this.phoneNumber)
                 .isVerified(this.verified)
-                .ssn(this.ssn)
                 .address(this.address)
                 .role(this.role)
                 .build();
