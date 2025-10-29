@@ -8,6 +8,7 @@ import com.store.popup.member.dto.MemberProfileUpdateReqDto;
 import com.store.popup.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,25 +39,28 @@ public class MemberProfileService {
     public MemberProfileResDto updateMyProfile(MemberProfileUpdateReqDto dto) {
         Member member = getCurrentMember();
 
-        if (dto.getName() != null) {
+        if (StringUtils.hasText(dto.getName())) {
             member.changeName(dto.getName());
         }
-        if (dto.getNickname() != null) {
+        if (StringUtils.hasText(dto.getNickname())) {
             member.changeNickname(dto.getNickname());
         }
-        if (dto.getPhoneNumber() != null) {
+        if (StringUtils.hasText(dto.getPhoneNumber())) {
             member.changePhoneNumber(dto.getPhoneNumber());
         }
 
-        if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null) {
-            String city = member.getAddress() != null ? member.getAddress().getCity() : null;
-            String street = member.getAddress() != null ? member.getAddress().getStreet() : null;
-            String zipcode = member.getAddress() != null ? member.getAddress().getZipcode() : null;
+        boolean hasCity   = StringUtils.hasText(dto.getCity());
+        boolean hasStreet = StringUtils.hasText(dto.getStreet());
+        boolean hasZip    = StringUtils.hasText(dto.getZipcode());
+        if (hasCity || hasStreet || hasZip) {
+            String currentCity    = member.getAddress() != null ? member.getAddress().getCity() : null;
+            String currentStreet  = member.getAddress() != null ? member.getAddress().getStreet() : null;
+            String currentZipcode = member.getAddress() != null ? member.getAddress().getZipcode() : null;
 
             Address newAddress = Address.builder()
-                    .city(dto.getCity() != null ? dto.getCity() : city)
-                    .street(dto.getStreet() != null ? dto.getStreet() : street)
-                    .zipcode(dto.getZipcode() != null ? dto.getZipcode() : zipcode)
+                    .city(hasCity ? dto.getCity() : currentCity)
+                    .street(hasStreet ? dto.getStreet() : currentStreet)
+                    .zipcode(hasZip ? dto.getZipcode() : currentZipcode)
                     .build();
             member.changeAddress(newAddress);
         }
