@@ -20,17 +20,20 @@ public class MemberProfileService {
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
 
+    // 현재 유저 정보 반환하는 dto
     private Member getCurrentMember() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return memberRepository.findByMemberEmailOrThrow(email);
     }
 
+    // 현재 멤버의 기본 정보를 반환
     @Transactional(readOnly = true)
     public MemberProfileResDto getMyProfile() {
         Member member = getCurrentMember();
         return MemberProfileResDto.fromEntity(member);
     }
 
+    // 회원 정보 수정
     @Transactional
     public MemberProfileResDto updateMyProfile(MemberProfileUpdateReqDto dto) {
         Member member = getCurrentMember();
@@ -66,6 +69,4 @@ public class MemberProfileService {
         memberRepository.save(member);
         return MemberProfileResDto.fromEntity(member);
     }
-}
-public class MemberProfileService {
 }

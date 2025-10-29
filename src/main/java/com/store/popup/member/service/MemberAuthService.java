@@ -61,6 +61,7 @@ public class MemberAuthService {
         Member member = saveReqDto.toEntity(passwordEncoder.encode(saveReqDto.getPassword()));
         memberRepository.save(member);
     }
+
     // 비밀번호 검증
     private void validateRegistration(MemberSaveReqDto saveReqDto) {
         if (saveReqDto.getPassword().length() <= 7) {
