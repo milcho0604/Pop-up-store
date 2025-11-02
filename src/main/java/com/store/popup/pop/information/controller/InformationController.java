@@ -7,6 +7,7 @@ import com.store.popup.pop.information.domain.InformationStatus;
 import com.store.popup.pop.information.dto.InformationDetailDto;
 import com.store.popup.pop.information.dto.InformationListDto;
 import com.store.popup.pop.information.dto.InformationSaveDto;
+import com.store.popup.pop.information.service.InformationConvertService;
 import com.store.popup.pop.information.service.InformationService;
 import com.store.popup.pop.post.domain.Post;
 import com.store.popup.pop.post.service.PostService;
@@ -26,6 +27,7 @@ import java.util.List;
 @RequestMapping("/info")
 public class InformationController {
 
+    private final InformationConvertService informationConvertService;
     private final InformationService informationService;
     private final PostService postService;
 
@@ -105,7 +107,7 @@ public class InformationController {
     @PostMapping("/convert/{id}")
     public ResponseEntity<?> convertInformationToPost(@PathVariable Long id) {
         try {
-            Post post = postService.convertInformationToPost(id);
+            Post post = informationConvertService.convertInformationToPost(id);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 Post로 변환되었습니다.", post.getId());
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -119,7 +121,7 @@ public class InformationController {
     @PostMapping("/convert/batch")
     public ResponseEntity<?> convertInformationsToPosts(@RequestBody List<Long> informationIds) {
         try {
-            List<Post> posts = postService.convertInformationsToPosts(informationIds);
+            List<Post> posts = informationConvertService.convertInformationsToPosts(informationIds);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, 
                     posts.size() + "개의 제보가 Post로 변환되었습니다.", 
                     posts.stream().map(Post::getId).toList());
