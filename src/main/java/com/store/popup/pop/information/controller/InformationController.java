@@ -7,6 +7,7 @@ import com.store.popup.pop.information.domain.InformationStatus;
 import com.store.popup.pop.information.dto.InformationDetailDto;
 import com.store.popup.pop.information.dto.InformationListDto;
 import com.store.popup.pop.information.dto.InformationSaveDto;
+import com.store.popup.pop.information.service.AdminInformationService;
 import com.store.popup.pop.information.service.InformationConvertService;
 import com.store.popup.pop.information.service.InformationService;
 import com.store.popup.pop.post.domain.Post;
@@ -27,8 +28,9 @@ import java.util.List;
 @RequestMapping("/info")
 public class InformationController {
 
-    private final InformationConvertService informationConvertService;
     private final InformationService informationService;
+    private final AdminInformationService adminInformationService;
+    private final InformationConvertService informationConvertService;
     private final PostService postService;
 
     // 고객이 팝업 스토어 제보
@@ -51,7 +53,7 @@ public class InformationController {
             Pageable pageable,
             @RequestParam(required = false) InformationStatus status) {
         try {
-            Page<InformationListDto> informations = informationService.getInformationList(pageable, status);
+            Page<InformationListDto> informations = adminInformationService.getInformationList(pageable, status);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 목록을 조회합니다.", informations);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -65,7 +67,7 @@ public class InformationController {
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getInformationDetail(@PathVariable Long id) {
         try {
-            InformationDetailDto information = informationService.getInformationDetail(id);
+            InformationDetailDto information = adminInformationService.getInformationDetail(id);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 상세정보를 조회합니다.", information);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
