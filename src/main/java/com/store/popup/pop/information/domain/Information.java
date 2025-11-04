@@ -33,6 +33,9 @@ public class Information extends BaseTimeEntity {
     @Column
     private String postImgUrl;
 
+    @Column
+    private String phoneNumber;
+
     // 제보자 정보
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
