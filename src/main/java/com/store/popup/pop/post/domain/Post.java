@@ -44,6 +44,8 @@ public class Post extends BaseTimeEntity {
 
     private String profileImgUrl;
 
+    @Column
+    private String phoneNumber;
     // 팝업 스토어 운영 기간
     @Column
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
