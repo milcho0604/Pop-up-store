@@ -34,6 +34,8 @@ public class InformationSaveDto {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
 
+    private String phoneNumber;
+
     // 팝업 스토어 주소
     private String city;
     private String street;
@@ -57,6 +59,7 @@ public class InformationSaveDto {
                 .startDate(this.startDate)
                 .endDate(this.endDate)
                 .address(address)
+                .phoneNumber(this.phoneNumber)
                 .build();
     }
 }

@@ -94,7 +94,7 @@ public class PostMetricsService {
         return 0L;
     }
 
-    //   좋아요 많은 게시글
+    // 좋아요 많은 게시글
     public List<PostListDto> famousPostList() {
         List<Post> posts = postRepository.findByDeletedAtIsNull();
         // Post -> PostListDto로 변환

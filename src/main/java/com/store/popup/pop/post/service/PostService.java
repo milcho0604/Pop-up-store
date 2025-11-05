@@ -4,8 +4,6 @@ import com.store.popup.common.enumdir.Role;
 import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
-import com.store.popup.pop.information.domain.Information;
-import com.store.popup.pop.information.domain.InformationStatus;
 import com.store.popup.pop.information.service.InformationService;
 import com.store.popup.pop.post.domain.Post;
 import com.store.popup.pop.post.dto.PostDetailDto;

@@ -28,6 +28,8 @@ public class PostSaveDto {
 
     private String memberName;
 
+    private String phoneNumber;
+
     @Column(nullable = false)
     private String title;
 

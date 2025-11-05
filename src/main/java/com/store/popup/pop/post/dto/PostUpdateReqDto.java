@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 public class PostUpdateReqDto {
     private String memberEmail;
+    private String phoneNumber;
     private String title;
     private String content;
     private MultipartFile postImg;

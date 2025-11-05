@@ -28,6 +28,7 @@ public class InformationDetailDto {
     private String street;
     private String zipcode;
     private InformationStatus status;
+    private String phoneNumber;
 
     public static InformationDetailDto fromEntity(Information information) {
         return InformationDetailDto.builder()
@@ -45,6 +46,7 @@ public class InformationDetailDto {
                 .street(information.getAddress() != null ? information.getAddress().getStreet() : null)
                 .zipcode(information.getAddress() != null ? information.getAddress().getZipcode() : null)
                 .status(information.getStatus())
+                .phoneNumber(information.getPhoneNumber())
                 .build();
     }
 }

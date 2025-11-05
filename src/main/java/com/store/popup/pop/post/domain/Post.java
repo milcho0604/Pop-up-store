@@ -91,32 +91,42 @@ public class Post extends BaseTimeEntity {
     }
 
     public Post update(PostUpdateReqDto dto){
-        this.title = dto.getTitle();
-        this.content = dto.getContent();
-        
-        // 시작일과 마감일 업데이트
+        // 제목
+        if (dto.getTitle() != null) {
+            this.title = dto.getTitle();
+        }
+        // 내용
+        if (dto.getContent() != null) {
+            this.content = dto.getContent();
+        }
+        // 전화번호
+        if (dto.getPhoneNumber() != null) {  // null → 건드리지 않음. "" → 비우고 싶으면 별도 정책.
+            this.phoneNumber = dto.getPhoneNumber();
+        }
+        // 시작일
         if (dto.getStartDate() != null) {
             this.startDate = dto.getStartDate();
         }
+        // 종료일
         if (dto.getEndDate() != null) {
             this.endDate = dto.getEndDate();
         }
-        
-        // 주소 업데이트
+        // 주소 병합 (기존 address 유지 + 들어온 값만 반영)
         if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null) {
             String currentCity = this.address != null ? this.address.getCity() : null;
             String currentStreet = this.address != null ? this.address.getStreet() : null;
             String currentZipcode = this.address != null ? this.address.getZipcode() : null;
-            
+
             this.address = Address.builder()
                     .city(dto.getCity() != null ? dto.getCity() : currentCity)
                     .street(dto.getStreet() != null ? dto.getStreet() : currentStreet)
                     .zipcode(dto.getZipcode() != null ? dto.getZipcode() : currentZipcode)
                     .build();
         }
-        
+
         return this;
     }
+
 
     // 조회수 업데이트 메서드
     public void updateViewCount(Long viewCount) {

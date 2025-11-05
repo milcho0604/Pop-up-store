@@ -70,6 +70,7 @@ public class InformationConvertService {
                 .startDate(information.getStartDate())
                 .endDate(information.getEndDate())
                 .address(information.getAddress())
+                .phoneNumber(information.getPhoneNumber())
                 .build();
 
         Post savedPost = postRepository.save(post);
@@ -131,6 +132,7 @@ public class InformationConvertService {
                         .startDate(information.getStartDate())
                         .endDate(information.getEndDate())
                         .address(information.getAddress())
+                        .phoneNumber(information.getPhoneNumber())
                         .build();
 
                 Post savedPost = postRepository.save(post);
