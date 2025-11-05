@@ -91,5 +91,4 @@ public class MemberAuthService {
         return jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(), member.getId());
     }
 
-
 }

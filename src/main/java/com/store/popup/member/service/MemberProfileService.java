@@ -8,6 +8,7 @@ import com.store.popup.member.dto.MemberProfileUpdateReqDto;
 import com.store.popup.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class MemberProfileService {
 
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final PasswordEncoder passwordEncoder;
 
     // 현재 유저 정보 반환하는 dto
     private Member getCurrentMember() {
@@ -51,6 +53,11 @@ public class MemberProfileService {
 
     // 1) 기본 정보: 이름/닉네임/전화
     private void applyBasicInfoPatch(Member member, MemberProfileUpdateReqDto dto) {
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            validatePassword(dto.getPassword(), dto.getConfirmPassword(), member.getPassword());
+            member.changePassword(passwordEncoder.encode(dto.getPassword()));
+            System.out.println("비밀번호가 변경되었습니다.");
+        }
         if (StringUtils.hasText(dto.getName())) {
             member.changeName(dto.getName());
         }
@@ -98,12 +105,19 @@ public class MemberProfileService {
         member.changeProfileImgUrl(imageUrl);
     }
 
-/* 전화번호 유효성 검사
-private void validatePhone(String phone) {
-    if (!phone.matches("^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$")) {
-        throw new IllegalArgumentException("전화번호 형식이 유효하지 않습니다.");
+    // 비밀번호 확인 및 검증 로직
+    private void validatePassword(String newPassword, String confirmPassword, String currentPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new RuntimeException("동일하지 않은 비밀번호 입니다.");
+        }
+
+        if (newPassword.length() <= 7) {
+            throw new RuntimeException("비밀번호는 8자 이상이어야 합니다.");
+        }
+
+        if (passwordEncoder.matches(newPassword, currentPassword)) {
+            throw new RuntimeException("이전과 동일한 비밀번호로 설정할 수 없습니다.");
+        }
     }
-}
-*/
 
 }
