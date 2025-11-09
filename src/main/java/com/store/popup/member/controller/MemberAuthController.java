@@ -89,7 +89,7 @@ public class MemberAuthController {
     public ResponseEntity<?> findPassword(@RequestBody MemberFindPasswordDto dto) {
         try {
             memberService.sendPasswordResetLink(dto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정 링크를 전송하였습니다.", null));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정 링크를 전송하였습니다.", dto));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -102,11 +102,11 @@ public class MemberAuthController {
     public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto dto) {
         try {
             memberService.resetPassword(dto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정에 성공하였습니다.", null));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정에 성공하였습니다.", HttpStatus.OK));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "비밀번호 재설정에 실패했습니다: " + e.getMessage(), null));
+                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "비밀번호 재설정에 실패했습니다: " + e.getMessage(), HttpStatus.BAD_REQUEST));
         }
     }
 
