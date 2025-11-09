@@ -38,6 +38,7 @@ public class PostService {
 //    private final CommentService commentService;
 
 
+    // 팝업 게시글 작성 -> 관리자이기 때문에 중복 검증 로직 회피
     public Post create(PostSaveDto dto) throws AccessDeniedException {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = findMemberByEmail(memberEmail);
@@ -46,12 +47,7 @@ public class PostService {
         }
         MultipartFile postImage = dto.getPostImage(); //게시글 사진
         String profileImgUrl = member.getProfileImgUrl();
-        int reportCount = member.getReportCount();
 
-        // 신고 횟수가 5 이상일 경우 예외 처리
-        if (reportCount >= 5) {
-            throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 작성할 수 없습니다.");
-        }
         Post post;
         if(postImage != null){
             String imageUrl = s3ClientFileUpload.upload(postImage);

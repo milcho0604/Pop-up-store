@@ -33,6 +33,13 @@ public class InformationService {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member reporter = findMemberByEmail(memberEmail);
 
+        int reportCount = reporter.getReportCount();
+
+        // 신고 횟수가 5 이상일 경우 예외 처리
+        if (reportCount >= 5) {
+            throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 작성할 수 없습니다.");
+        }
+
         String postImgUrl = null;
         if (dto.getPostImage() != null && !dto.getPostImage().isEmpty()) {
             postImgUrl = s3ClientFileUpload.upload(dto.getPostImage());
