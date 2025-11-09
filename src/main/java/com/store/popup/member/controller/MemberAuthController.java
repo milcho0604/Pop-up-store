@@ -110,6 +110,7 @@ public class MemberAuthController {
         }
     }
 
+    // 비밀번호 찾기를 위한 토큰 로직
     @GetMapping("/reset/password")
     public ResponseEntity<?> showResetPasswordPage(@RequestParam("token") String token) {
         // 토큰 유효성 검사 등 추가 로직 수행 가능
