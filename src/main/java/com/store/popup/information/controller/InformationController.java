@@ -11,6 +11,7 @@ import com.store.popup.information.service.AdminInformationService;
 import com.store.popup.information.service.InformationConvertService;
 import com.store.popup.information.service.InformationService;
 import com.store.popup.pop.domain.Post;
+import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.pop.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -131,6 +132,40 @@ public class InformationController {
         } catch (Exception e) {
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 일괄 변환 실패: " + e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 관리자가 단일 제보를 정보 수정 후 Post로 변환
+    @PostMapping("/convert/{id}/with-update")
+    public ResponseEntity<?> convertInformationToPostWithUpdate(
+            @PathVariable Long id,
+            @ModelAttribute PostUpdateReqDto dto) {
+        try {
+            Post post = informationConvertService.convertInformationToPostWithUpdate(id, dto);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 수정 후 Post로 변환되었습니다.", post.getId());
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 수정 후 변환 실패: " + e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 관리자가 여러 제보를 정보 수정 후 Post로 일괄 변환
+    @PostMapping("/convert/batch/with-update")
+    public ResponseEntity<?> convertInformationsToPostsWithUpdate(
+            @RequestParam List<Long> informationIds,
+            @RequestBody List<PostUpdateReqDto> updateDtos) {
+        try {
+            List<Post> posts = informationConvertService.convertInformationsToPostsWithUpdate(informationIds, updateDtos);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, 
+                    posts.size() + "개의 제보가 수정 후 Post로 변환되었습니다.", 
+                    posts.stream().map(Post::getId).toList());
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 일괄 수정 후 변환 실패: " + e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
