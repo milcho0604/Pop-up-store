@@ -80,17 +80,20 @@ public class MemberProfileService {
         boolean hasCity = StringUtils.hasText(dto.getCity());
         boolean hasStreet = StringUtils.hasText(dto.getStreet());
         boolean hasZip = StringUtils.hasText(dto.getZipcode());
+        boolean hasDetailAddress = StringUtils.hasText(dto.getDetailAddress());
 
-        if (!hasCity && !hasStreet && !hasZip) return;
+        if (!hasCity && !hasStreet && !hasZip && !hasDetailAddress) return;
 
         String currentCity = member.getAddress() != null ? member.getAddress().getCity() : null;
         String currentStreet = member.getAddress() != null ? member.getAddress().getStreet() : null;
         String currentZipcode = member.getAddress() != null ? member.getAddress().getZipcode() : null;
+        String currentDetailAddress = member.getAddress() != null ? member.getAddress().getDetailAddress() : null;
 
         Address newAddress = Address.builder()
                 .city(hasCity ? dto.getCity() : currentCity)
                 .street(hasStreet ? dto.getStreet() : currentStreet)
                 .zipcode(hasZip ? dto.getZipcode() : currentZipcode)
+                .detailAddress(hasDetailAddress ? dto.getDetailAddress() : currentDetailAddress)
                 .build();
 
         member.changeAddress(newAddress);

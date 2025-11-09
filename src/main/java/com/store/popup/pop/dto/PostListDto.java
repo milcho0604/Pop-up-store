@@ -30,4 +30,7 @@ public class PostListDto {
     private String city;
     private String street;
     private String zipcode;
+    
+    // 상세 주소
+    private String detailAddress;
 }

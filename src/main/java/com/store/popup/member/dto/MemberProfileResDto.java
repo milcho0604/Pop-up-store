@@ -24,6 +24,7 @@ public class MemberProfileResDto {
     private String city;
     private String street;
     private String zipcode;
+    private String detailAddress;
     private Role role;
     private boolean verified;
     private LocalDateTime createdAt;
@@ -41,6 +42,7 @@ public class MemberProfileResDto {
                 .city(addr != null ? addr.getCity() : null)
                 .street(addr != null ? addr.getStreet() : null)
                 .zipcode(addr != null ? addr.getZipcode() : null)
+                .detailAddress(addr != null ? addr.getDetailAddress() : null)
                 .role(member.getRole())
                 .verified(member.isVerified())
                 .createdAt(member.getCreatedAt())

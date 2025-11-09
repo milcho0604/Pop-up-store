@@ -8,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Data
 @Builder
@@ -32,6 +31,9 @@ public class PostUpdateReqDto {
     private String city;
     private String street;
     private String zipcode;
+    
+    // 상세 주소
+    private String detailAddress;
     
     // 문자열을 LocalDateTime으로 변환하는 메서드
 

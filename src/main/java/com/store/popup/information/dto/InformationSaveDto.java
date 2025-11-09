@@ -40,14 +40,18 @@ public class InformationSaveDto {
     private String city;
     private String street;
     private String zipcode;
+    
+    // 상세 주소
+    private String detailAddress;
 
     public Information toEntity(String postImgUrl, Member reporter) {
         Address address = null;
-        if (city != null || street != null || zipcode != null) {
+        if (city != null || street != null || zipcode != null || detailAddress != null) {
             address = Address.builder()
                     .city(city)
                     .street(street)
                     .zipcode(zipcode)
+                    .detailAddress(detailAddress)
                     .build();
         }
 

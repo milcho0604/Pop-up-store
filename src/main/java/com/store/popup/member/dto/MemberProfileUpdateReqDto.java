@@ -17,6 +17,7 @@ public class MemberProfileUpdateReqDto {
     private String city;
     private String street;
     private String zipcode;
+    private String detailAddress;
     private String password;
     private String confirmPassword;
     private MultipartFile profileImage;

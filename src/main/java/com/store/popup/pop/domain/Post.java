@@ -59,7 +59,6 @@ public class Post extends BaseTimeEntity {
     @Embedded
     private Address address;
 
-
     private@Builder.Default
     Long viewCount = 0L;
 
@@ -83,6 +82,7 @@ public class Post extends BaseTimeEntity {
                 .city(this.address != null ? this.address.getCity() : null)
                 .street(this.address != null ? this.address.getStreet() : null)
                 .zipcode(this.address != null ? this.address.getZipcode() : null)
+                .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
                 .build();
     }
 
@@ -112,15 +112,17 @@ public class Post extends BaseTimeEntity {
             this.endDate = dto.getEndDate();
         }
         // 주소 병합 (기존 address 유지 + 들어온 값만 반영)
-        if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null) {
+        if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null || dto.getDetailAddress() != null) {
             String currentCity = this.address != null ? this.address.getCity() : null;
             String currentStreet = this.address != null ? this.address.getStreet() : null;
             String currentZipcode = this.address != null ? this.address.getZipcode() : null;
+            String currentDetailAddress = this.address != null ? this.address.getDetailAddress() : null;
 
             this.address = Address.builder()
                     .city(dto.getCity() != null ? dto.getCity() : currentCity)
                     .street(dto.getStreet() != null ? dto.getStreet() : currentStreet)
                     .zipcode(dto.getZipcode() != null ? dto.getZipcode() : currentZipcode)
+                    .detailAddress(dto.getDetailAddress() != null ? dto.getDetailAddress() : currentDetailAddress)
                     .build();
         }
 

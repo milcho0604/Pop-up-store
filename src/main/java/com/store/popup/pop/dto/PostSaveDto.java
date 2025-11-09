@@ -50,15 +50,19 @@ public class PostSaveDto {
     private String city;
     private String street;
     private String zipcode;
+    
+    // 상세 주소
+    private String detailAddress;
 
     public Post toEntity(String postImgUrl, Member member, String profileImgUrl) {
         
         Address address = null;
-        if (city != null || street != null || zipcode != null) {
+        if (city != null || street != null || zipcode != null || detailAddress != null) {
             address = Address.builder()
                     .city(city)
                     .street(street)
                     .zipcode(zipcode)
+                    .detailAddress(detailAddress)
                     .build();
         }
         
@@ -71,6 +75,7 @@ public class PostSaveDto {
                 .startDate(this.startDate)
                 .endDate(this.endDate)
                 .address(address)
+                .phoneNumber(this.phoneNumber)
                 .build();
     }
 }

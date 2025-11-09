@@ -74,6 +74,7 @@ public class Information extends BaseTimeEntity {
                 .city(this.address != null ? this.address.getCity() : null)
                 .street(this.address != null ? this.address.getStreet() : null)
                 .zipcode(this.address != null ? this.address.getZipcode() : null)
+                .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
                 .status(this.status)
                 .build();
     }

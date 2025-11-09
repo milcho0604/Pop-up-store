@@ -27,6 +27,10 @@ public class InformationDetailDto {
     private String city;
     private String street;
     private String zipcode;
+    
+    // 상세 주소
+    private String detailAddress;
+    
     private InformationStatus status;
     private String phoneNumber;
 
@@ -45,6 +49,7 @@ public class InformationDetailDto {
                 .city(information.getAddress() != null ? information.getAddress().getCity() : null)
                 .street(information.getAddress() != null ? information.getAddress().getStreet() : null)
                 .zipcode(information.getAddress() != null ? information.getAddress().getZipcode() : null)
+                .detailAddress(information.getAddress() != null ? information.getAddress().getDetailAddress() : null)
                 .status(information.getStatus())
                 .phoneNumber(information.getPhoneNumber())
                 .build();
