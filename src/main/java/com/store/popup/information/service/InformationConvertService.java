@@ -61,18 +61,7 @@ public class InformationConvertService {
         Member adminMember = findMemberByEmail(memberEmail);
         String profileImgUrl = adminMember.getProfileImgUrl();
 
-        Post post = Post.builder()
-                .member(adminMember)
-                .title(information.getTitle())
-                .content(information.getContent())
-                .postImgUrl(information.getPostImgUrl())
-                .profileImgUrl(profileImgUrl)
-                .startDate(information.getStartDate())
-                .endDate(information.getEndDate())
-                .address(information.getAddress())
-                .phoneNumber(information.getPhoneNumber())
-                .build();
-
+        Post post = Post.convertFromInformation(information, adminMember, profileImgUrl);
         Post savedPost = postRepository.save(post);
 
         // Information 상태를 APPROVED로 변경
@@ -123,18 +112,7 @@ public class InformationConvertService {
                 }
 
                 // Information을 Post로 변환
-                Post post = Post.builder()
-                        .member(adminMember)
-                        .title(information.getTitle())
-                        .content(information.getContent())
-                        .postImgUrl(information.getPostImgUrl())
-                        .profileImgUrl(profileImgUrl)
-                        .startDate(information.getStartDate())
-                        .endDate(information.getEndDate())
-                        .address(information.getAddress())
-                        .phoneNumber(information.getPhoneNumber())
-                        .build();
-
+                Post post = Post.convertFromInformation(information, adminMember, profileImgUrl);
                 Post savedPost = postRepository.save(post);
                 createdPosts.add(savedPost);
 

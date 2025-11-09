@@ -2,6 +2,7 @@ package com.store.popup.pop.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
 
+import com.store.popup.information.domain.Information;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.pop.dto.PostListDto;
@@ -135,6 +136,21 @@ public class Post extends BaseTimeEntity {
     // 좋아요 수 업데이트 메서드
     public void updateLikeCount(Long likeCount) {
         this.likeCount = (likeCount != null) ? likeCount : 0L; // null이면 0L로 처리
+    }
+
+    // Information을 Post로 변환하는 static 메서드
+    public static Post convertFromInformation(Information information, Member adminMember, String profileImgUrl) {
+        return Post.builder()
+                .member(adminMember)
+                .title(information.getTitle())
+                .content(information.getContent())
+                .postImgUrl(information.getPostImgUrl())
+                .profileImgUrl(profileImgUrl)
+                .startDate(information.getStartDate())
+                .endDate(information.getEndDate())
+                .address(information.getAddress())
+                .phoneNumber(information.getPhoneNumber())
+                .build();
     }
 
 }
