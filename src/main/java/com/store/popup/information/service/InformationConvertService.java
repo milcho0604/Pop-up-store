@@ -8,6 +8,7 @@ import com.store.popup.information.domain.Information;
 import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.dto.PostUpdateReqDto;
+import com.store.popup.pop.policy.PostDuplicateValidator;
 import com.store.popup.pop.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class InformationConvertService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final PostDuplicateValidator postDuplicateValidator;
 
     // Information을 Post로 변환 (단일)
     @Transactional
@@ -47,7 +49,8 @@ public class InformationConvertService {
 
         // 중복 체크
         if (information.getAddress() != null && information.getStartDate() != null && information.getEndDate() != null) {
-            ensureNoDuplicateByPlaceAndPeriod(information);
+//            ensureNoDuplicateByPlaceAndPeriod(information);
+            postDuplicateValidator.ensureInfoNoDuplicateByPlaceAndPeriod(information);
         }
 
         // Information을 Post로 변환
@@ -91,7 +94,8 @@ public class InformationConvertService {
 
                 // 중복 체크
                 if (information.getAddress() != null && information.getStartDate() != null && information.getEndDate() != null) {
-                    ensureNoDuplicateByPlaceAndPeriod(information);
+//                    ensureNoDuplicateByPlaceAndPeriod(information);
+                    postDuplicateValidator.ensureInfoNoDuplicateByPlaceAndPeriod(information);
                 }
 
                 // Information을 Post로 변환
@@ -134,15 +138,16 @@ public class InformationConvertService {
         }
 
         // 중복 체크 (수정된 정보 기준)
-        String checkCity = dto.getCity() != null ? dto.getCity() : (information.getAddress() != null ? information.getAddress().getCity() : null);
-        String checkStreet = dto.getStreet() != null ? dto.getStreet() : (information.getAddress() != null ? information.getAddress().getStreet() : null);
-        String checkZipcode = dto.getZipcode() != null ? dto.getZipcode() : (information.getAddress() != null ? information.getAddress().getZipcode() : null);
-        LocalDateTime checkStartDate = dto.getStartDate() != null ? dto.getStartDate() : information.getStartDate();
-        LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
-
-        if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
-            ensureNoDuplicateByPlaceAndPeriod(information);
-        }
+//        String checkCity = dto.getCity() != null ? dto.getCity() : (information.getAddress() != null ? information.getAddress().getCity() : null);
+//        String checkStreet = dto.getStreet() != null ? dto.getStreet() : (information.getAddress() != null ? information.getAddress().getStreet() : null);
+//        String checkZipcode = dto.getZipcode() != null ? dto.getZipcode() : (information.getAddress() != null ? information.getAddress().getZipcode() : null);
+//        LocalDateTime checkStartDate = dto.getStartDate() != null ? dto.getStartDate() : information.getStartDate();
+//        LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
+//
+//        if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
+//            ensureNoDuplicateByPlaceAndPeriod(information);
+//            postDuplicateValidator.ensureInfoNoDuplicateByPlaceAndPeriod(information);
+//        }
 
         // Information을 Post로 변환
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -159,6 +164,8 @@ public class InformationConvertService {
 
         // 정보 수정 적용
         post.update(dto);
+        // 중복 체크 (수정된 정보 기준)
+        postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
         Post savedPost = postRepository.save(post);
 
         // Information 상태를 APPROVED로 변경
@@ -200,15 +207,16 @@ public class InformationConvertService {
                 }
 
                 // 중복 체크 (수정된 정보 기준)
-                String checkCity = dto.getCity() != null ? dto.getCity() : (information.getAddress() != null ? information.getAddress().getCity() : null);
-                String checkStreet = dto.getStreet() != null ? dto.getStreet() : (information.getAddress() != null ? information.getAddress().getStreet() : null);
-                String checkZipcode = dto.getZipcode() != null ? dto.getZipcode() : (information.getAddress() != null ? information.getAddress().getZipcode() : null);
-                LocalDateTime checkStartDate = dto.getStartDate() != null ? dto.getStartDate() : information.getStartDate();
-                LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
-
-                if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
-                    ensureNoDuplicateByPlaceAndPeriod(information);
-                }
+//                String checkCity = dto.getCity() != null ? dto.getCity() : (information.getAddress() != null ? information.getAddress().getCity() : null);
+//                String checkStreet = dto.getStreet() != null ? dto.getStreet() : (information.getAddress() != null ? information.getAddress().getStreet() : null);
+//                String checkZipcode = dto.getZipcode() != null ? dto.getZipcode() : (information.getAddress() != null ? information.getAddress().getZipcode() : null);
+//                LocalDateTime checkStartDate = dto.getStartDate() != null ? dto.getStartDate() : information.getStartDate();
+//                LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
+//
+//                if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
+////                    ensureNoDuplicateByPlaceAndPeriod(information);
+//                    postDuplicateValidator.ensureInfoNoDuplicateByPlaceAndPeriod(information);
+//                }
 
                 // Information을 Post로 변환
                 Post post = Post.convertFromInformation(information, adminMember, profileImgUrl);
@@ -221,6 +229,8 @@ public class InformationConvertService {
 
                 // 정보 수정 적용
                 post.update(dto);
+                // 중복 체크 (수정된 정보 기준)
+                postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
                 Post savedPost = postRepository.save(post);
                 createdPosts.add(savedPost);
 
@@ -258,6 +268,8 @@ public class InformationConvertService {
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
     }
+
+    // 중복 검증 로직(일단 지우지 말기)
     private void ensureNoDuplicateByPlaceAndPeriod(Information info) {
         Post duplicate = postRepository.findDuplicatePost(
                 info.getAddress().getCity(),

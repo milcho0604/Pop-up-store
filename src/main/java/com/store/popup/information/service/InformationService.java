@@ -8,6 +8,7 @@ import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.dto.InformationSaveDto;
 import com.store.popup.information.repository.InformationRepository;
+import com.store.popup.pop.policy.PostDuplicateValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

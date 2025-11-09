@@ -20,9 +20,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByMemberAndDeletedAtIsNull(Member member, Pageable pageable);
 
     // 중복 체크: 주소와 운영 기간이 동일한 Post가 있는지 확인
-    boolean existsByCityAndStreetAndZipcodeAndStartDateAndEndDateAndDeletedAtIsNull(
-            String city, String street, String zipcode, LocalDateTime startDate, LocalDateTime endDate);
+    // 생성/변환 시 중복 검사
+    boolean existsByAddress_CityAndAddress_StreetAndAddress_ZipcodeAndStartDateAndEndDateAndDeletedAtIsNull(
+            String city, String street, String zipcode,
+            LocalDateTime startDate, LocalDateTime endDate
+    );
 
+    // 수정 시 자기 자신 제외한 중복 검사
+    boolean existsByIdNotAndAddress_CityAndAddress_StreetAndAddress_ZipcodeAndStartDateAndEndDateAndDeletedAtIsNull(
+            Long id,
+            String city, String street, String zipcode,
+            LocalDateTime startDate, LocalDateTime endDate
+    );
 
     // 중복 체크: 주소와 운영 기간이 동일한 Post가 있는지 확인
     @Query("SELECT p FROM Post p WHERE p.deletedAt IS NULL " +
