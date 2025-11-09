@@ -3,12 +3,11 @@ package com.store.popup.member.controller;
 
 import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
-import com.store.popup.member.dto.EmailVerificationDto;
-import com.store.popup.member.dto.MemberLoginDto;
-import com.store.popup.member.dto.MemberSaveReqDto;
+import com.store.popup.member.dto.*;
 import com.store.popup.member.service.MemberAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -84,4 +83,43 @@ public class MemberAuthController {
                     .body(new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다."));
         }
     }
+
+    // 비밀번호 재설정 링크 전송
+    @PostMapping("/find/password")
+    public ResponseEntity<?> findPassword(@RequestBody MemberFindPasswordDto dto) {
+        try {
+            memberService.sendPasswordResetLink(dto);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정 링크를 전송하였습니다.", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "올바른 이메일을 입력해주세요.", null));
+        }
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/reset/password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto dto) {
+        try {
+            memberService.resetPassword(dto);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정에 성공하였습니다.", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "비밀번호 재설정에 실패했습니다: " + e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/reset/password")
+    public ResponseEntity<?> showResetPasswordPage(@RequestParam("token") String token) {
+        // 토큰 유효성 검사 등 추가 로직 수행 가능
+
+        // 이 단계에서 Vue.js로의 페이지 렌더링을 의도
+        // ResponseEntity는 JSON 응답을 반환하는 대신 Vue.js 페이지로 리디렉션합니다.
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/reset/password?token=" + token);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+    }
+
+
 }

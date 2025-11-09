@@ -4,9 +4,12 @@ package com.store.popup.member.service;
 import com.store.popup.common.config.JwtTokenProvider;
 import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.member.domain.Member;
+import com.store.popup.member.dto.MemberFindPasswordDto;
 import com.store.popup.member.dto.MemberLoginDto;
 import com.store.popup.member.dto.MemberSaveReqDto;
+import com.store.popup.member.dto.PasswordResetDto;
 import com.store.popup.member.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -89,6 +92,51 @@ public class MemberAuthService {
         memberRepository.save(member);
 
         return jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(), member.getId());
+    }
+    // 비밀번호 재설정 링크 전송
+    public void sendPasswordResetLink(MemberFindPasswordDto dto) {
+        Member member = memberRepository.findByMemberEmail(dto.getMemberEmail())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+        // memberId를 추가 인자로 전달하여 토큰 생성
+        String resetToken = jwtTokenProvider.createToken(member.getMemberEmail(), member.getRole().name(), member.getId());
+
+        // Redis에 저장
+        redisEmailService.saveVerificationCode(dto.getMemberEmail(), resetToken);
+
+        // 이메일 전송
+//        "http:localhost8080://member-service/member/reset/password"
+        // 비밀번호 재설정 링크 URL 수정
+        String passwordResetLink = "http://localhost:8081/member/reset/password?token=" + resetToken;
+
+        redisEmailService.sendSimpleMessage(dto.getMemberEmail(), "비밀번호 재설정", "비밀번호 재설정 링크: " + passwordResetLink);
+    }
+
+    // 비밀번호 재설정
+    public void resetPassword(PasswordResetDto dto) {
+        String email = jwtTokenProvider.getEmailFromToken(dto.getToken());
+        Member member = memberRepository.findByMemberEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+
+        validatePassword(dto.getNewPassword(), dto.getConfirmPassword(), member.getPassword());
+
+        member.resetPassword(passwordEncoder.encode(dto.getNewPassword()));
+        memberRepository.save(member);
+    }
+
+    // 비밀번호 확인 및 검증 로직
+    // 헬퍼 메서드
+    private void validatePassword(String newPassword, String confirmPassword, String currentPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new RuntimeException("동일하지 않은 비밀번호 입니다.");
+        }
+
+        if (newPassword.length() <= 7) {
+            throw new RuntimeException("비밀번호는 8자 이상이어야 합니다.");
+        }
+
+        if (passwordEncoder.matches(newPassword, currentPassword)) {
+            throw new RuntimeException("이전과 동일한 비밀번호로 설정할 수 없습니다.");
+        }
     }
 
 }

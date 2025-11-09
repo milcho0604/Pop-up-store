@@ -127,6 +127,11 @@ public class Member extends BaseTimeEntity {
         this.password = newPassword;
     }
 
+    // 비밀번호 재설정 메서드
+    public void resetPassword(String password) {
+        this.password = password;
+    }
+
     public String getRoleKey() {
         return this.role.getKey();
     }
