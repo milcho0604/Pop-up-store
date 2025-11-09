@@ -10,6 +10,7 @@ import com.store.popup.pop.dto.PostDetailDto;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.pop.dto.PostSaveDto;
+import com.store.popup.pop.policy.PostDuplicateValidator;
 import com.store.popup.pop.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +35,11 @@ public class PostService {
     private final PostRepository postRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
     private final PostMetricsService postMetricsService;
-    private final InformationService informationService;
+    private final PostDuplicateValidator postDuplicateValidator;
 //    private final CommentService commentService;
 
 
-    // 팝업 게시글 작성 -> 관리자이기 때문에 중복 검증 로직 회피
+    // 팝업 게시글 작성 -> 테스트를 위해 관리자는 중복 검증 로직 회피
     public Post create(PostSaveDto dto) throws AccessDeniedException {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = findMemberByEmail(memberEmail);
@@ -52,9 +53,11 @@ public class PostService {
         if(postImage != null){
             String imageUrl = s3ClientFileUpload.upload(postImage);
             post = dto.toEntity(imageUrl, member, profileImgUrl);
+//            postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
             post = postRepository.save(post);
         }else {
             post = dto.toEntity(null, member, profileImgUrl);
+//            postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
             post = postRepository.save(post);
         }
         
@@ -103,17 +106,13 @@ public class PostService {
         return postDetailDto;
     }
 
+    // 팝업 게시글 수정
     @Transactional
     public void updatePost(Long id, PostUpdateReqDto dto){
         Post post = postRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 Post입니다."));
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = findMemberByEmail(memberEmail);
         int reportCount = member.getReportCount();
-
-        // 신고 횟수가 5 이상일 경우 예외 처리
-        if (reportCount >= 5) {
-            throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 수정할 수 없습니다.");
-        }
 
         MultipartFile image = dto.getPostImg();
         if (image != null && !image.isEmpty()){
