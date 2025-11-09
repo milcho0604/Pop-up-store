@@ -49,6 +49,8 @@ public class InformationService {
         Information information = dto.toEntity(postImgUrl, reporter);
         return informationRepository.save(information);
     }
+    // 고객이 자신이 제보한 팝업 스토어 정보 수정
+    // 만들기
 
     // 제보자 본인이 자신의 제보 목록 조회
     @Transactional(readOnly = true)

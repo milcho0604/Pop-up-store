@@ -269,7 +269,11 @@ public class InformationConvertService {
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
     }
 
-    // 중복 검증 로직(일단 지우지 말기)
+    /**
+     * 사용하지 않음
+     * 중복 검증 로직(일단 지우지 말기)
+     * @param info
+     */
     private void ensureNoDuplicateByPlaceAndPeriod(Information info) {
         Post duplicate = postRepository.findDuplicatePost(
                 info.getAddress().getCity(),
