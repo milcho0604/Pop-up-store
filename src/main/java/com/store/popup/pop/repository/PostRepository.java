@@ -18,7 +18,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByDeletedAtIsNull();
     // 사용자의 이메일을 기준으로 삭제되지 않은 게시글 목록 조회
     Page<Post> findByMemberAndDeletedAtIsNull(Member member, Pageable pageable);
-    
+
+    // 중복 체크: 주소와 운영 기간이 동일한 Post가 있는지 확인
+    boolean existsByCityAndStreetAndZipcodeAndStartDateAndEndDateAndDeletedAtIsNull(
+            String city, String street, String zipcode, LocalDateTime startDate, LocalDateTime endDate);
+
+
     // 중복 체크: 주소와 운영 기간이 동일한 Post가 있는지 확인
     @Query("SELECT p FROM Post p WHERE p.deletedAt IS NULL " +
            "AND p.address.city = :city " +

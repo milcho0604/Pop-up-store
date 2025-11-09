@@ -47,17 +47,7 @@ public class InformationConvertService {
 
         // 중복 체크
         if (information.getAddress() != null && information.getStartDate() != null && information.getEndDate() != null) {
-            Post duplicate = postRepository.findDuplicatePost(
-                    information.getAddress().getCity(),
-                    information.getAddress().getStreet(),
-                    information.getAddress().getZipcode(),
-                    information.getStartDate(),
-                    information.getEndDate()
-            ).orElse(null);
-
-            if (duplicate != null) {
-                throw new IllegalArgumentException("이미 등록된 팝업 스토어입니다. (중복된 주소와 운영 기간)");
-            }
+            ensureNoDuplicateByPlaceAndPeriod(information);
         }
 
         // Information을 Post로 변환
@@ -101,18 +91,7 @@ public class InformationConvertService {
 
                 // 중복 체크
                 if (information.getAddress() != null && information.getStartDate() != null && information.getEndDate() != null) {
-                    Post duplicate = postRepository.findDuplicatePost(
-                            information.getAddress().getCity(),
-                            information.getAddress().getStreet(),
-                            information.getAddress().getZipcode(),
-                            information.getStartDate(),
-                            information.getEndDate()
-                    ).orElse(null);
-
-                    if (duplicate != null) {
-                        errors.add("ID " + information.getId() + ": 이미 등록된 팝업 스토어입니다. (중복된 주소와 운영 기간)");
-                        continue;
-                    }
+                    ensureNoDuplicateByPlaceAndPeriod(information);
                 }
 
                 // Information을 Post로 변환
@@ -162,17 +141,7 @@ public class InformationConvertService {
         LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
 
         if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
-            Post duplicate = postRepository.findDuplicatePost(
-                    checkCity,
-                    checkStreet,
-                    checkZipcode,
-                    checkStartDate,
-                    checkEndDate
-            ).orElse(null);
-
-            if (duplicate != null) {
-                throw new IllegalArgumentException("이미 등록된 팝업 스토어입니다. (중복된 주소와 운영 기간)");
-            }
+            ensureNoDuplicateByPlaceAndPeriod(information);
         }
 
         // Information을 Post로 변환
@@ -238,18 +207,7 @@ public class InformationConvertService {
                 LocalDateTime checkEndDate = dto.getEndDate() != null ? dto.getEndDate() : information.getEndDate();
 
                 if (checkCity != null && checkStreet != null && checkZipcode != null && checkStartDate != null && checkEndDate != null) {
-                    Post duplicate = postRepository.findDuplicatePost(
-                            checkCity,
-                            checkStreet,
-                            checkZipcode,
-                            checkStartDate,
-                            checkEndDate
-                    ).orElse(null);
-
-                    if (duplicate != null) {
-                        errors.add("ID " + information.getId() + ": 이미 등록된 팝업 스토어입니다. (중복된 주소와 운영 기간)");
-                        continue;
-                    }
+                    ensureNoDuplicateByPlaceAndPeriod(information);
                 }
 
                 // Information을 Post로 변환
@@ -299,5 +257,18 @@ public class InformationConvertService {
     private Member findMemberByEmail(String email){
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+    }
+    private void ensureNoDuplicateByPlaceAndPeriod(Information info) {
+        Post duplicate = postRepository.findDuplicatePost(
+                info.getAddress().getCity(),
+                info.getAddress().getStreet(),
+                info.getAddress().getZipcode(),
+                info.getStartDate(),
+                info.getEndDate()
+        ).orElse(null);
+
+        if (duplicate != null) {
+            throw new IllegalArgumentException("이미 등록된 팝업 스토어입니다. (중복된 주소와 운영 기간)");
+        }
     }
 }
