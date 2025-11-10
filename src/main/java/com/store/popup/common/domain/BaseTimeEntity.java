@@ -33,4 +33,10 @@ public class BaseTimeEntity {
     public void acceptHospitalAdmin(){
         this.deletedAt = null;
     }
+
+
+    /** 필요 시 updatedAt 강제 갱신용(옵션) */
+    public void touch() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

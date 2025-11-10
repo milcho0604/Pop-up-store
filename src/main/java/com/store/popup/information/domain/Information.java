@@ -80,11 +80,12 @@ public class Information extends BaseTimeEntity {
                 .build();
     }
 
-    // 상태 변경 메서드
+    // 상태 변경 메서드 : 승인
     public void approve() {
         this.status = InformationStatus.APPROVED;
     }
 
+    // 상태 변경 메서드 : 거절
     public void reject() {
         this.status = InformationStatus.REJECTED;
     }
