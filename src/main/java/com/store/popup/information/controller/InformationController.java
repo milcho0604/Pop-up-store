@@ -75,7 +75,7 @@ public class InformationController {
     }
 
     // 제보자 본인이 자신의 제보 수정
-    @PutMapping("/my/update/{id}")
+    @PostMapping("/my/update/{id}")
     public ResponseEntity<?> updateMyInformation(
             @PathVariable Long id,
             @ModelAttribute InformationUpdateReqDto dto) {
