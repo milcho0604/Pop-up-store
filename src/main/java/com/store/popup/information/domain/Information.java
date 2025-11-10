@@ -4,6 +4,7 @@ import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.information.dto.InformationListDto;
+import com.store.popup.information.dto.InformationUpdateReqDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -86,6 +87,49 @@ public class Information extends BaseTimeEntity {
 
     public void reject() {
         this.status = InformationStatus.REJECTED;
+    }
+
+    // 이미지 업데이트 메서드
+    public void updateImage(String postImgUrl) {
+        this.postImgUrl = postImgUrl;
+    }
+
+    // 정보 업데이트 메서드
+    public void update(InformationUpdateReqDto dto) {
+        // 제목
+        if (dto.getTitle() != null) {
+            this.title = dto.getTitle();
+        }
+        // 내용
+        if (dto.getContent() != null) {
+            this.content = dto.getContent();
+        }
+        // 전화번호
+        if (dto.getPhoneNumber() != null) {
+            this.phoneNumber = dto.getPhoneNumber();
+        }
+        // 시작일
+        if (dto.getStartDate() != null) {
+            this.startDate = dto.getStartDate();
+        }
+        // 종료일
+        if (dto.getEndDate() != null) {
+            this.endDate = dto.getEndDate();
+        }
+        // 주소 병합 (기존 address 유지 + 들어온 값만 반영)
+        if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null || dto.getDetailAddress() != null) {
+            String currentCity = this.address != null ? this.address.getCity() : null;
+            String currentStreet = this.address != null ? this.address.getStreet() : null;
+            String currentZipcode = this.address != null ? this.address.getZipcode() : null;
+            String currentDetailAddress = this.address != null ? this.address.getDetailAddress() : null;
+
+            this.address = Address.builder()
+                    .city(dto.getCity() != null ? dto.getCity() : currentCity)
+                    .street(dto.getStreet() != null ? dto.getStreet() : currentStreet)
+                    .zipcode(dto.getZipcode() != null ? dto.getZipcode() : currentZipcode)
+                    .detailAddress(dto.getDetailAddress() != null ? dto.getDetailAddress() : currentDetailAddress)
+                    .build();
+        }
     }
 }
 

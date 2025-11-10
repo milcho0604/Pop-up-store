@@ -7,6 +7,7 @@ import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.dto.InformationSaveDto;
+import com.store.popup.information.dto.InformationUpdateReqDto;
 import com.store.popup.information.service.AdminInformationService;
 import com.store.popup.information.service.InformationConvertService;
 import com.store.popup.information.service.InformationService;
@@ -102,6 +103,22 @@ public class InformationController {
         } catch (Exception e) {
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "내 제보 상세 조회 실패: " + e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 제보자 본인이 자신의 제보 수정
+    @PutMapping("/my/update/{id}")
+    public ResponseEntity<?> updateMyInformation(
+            @PathVariable Long id,
+            @ModelAttribute InformationUpdateReqDto dto) {
+        try {
+            InformationDetailDto information = informationService.update(id, dto);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 수정되었습니다.", information);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 수정 실패: " + e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }

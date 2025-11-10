@@ -4,11 +4,12 @@ import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.information.domain.Information;
+import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.dto.InformationSaveDto;
+import com.store.popup.information.dto.InformationUpdateReqDto;
 import com.store.popup.information.repository.InformationRepository;
-import com.store.popup.pop.policy.PostDuplicateValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,35 @@ public class InformationService {
         return informationRepository.save(information);
     }
     // 고객이 자신이 제보한 팝업 스토어 정보 수정
-    // 만들기
+    public InformationDetailDto update(Long id, InformationUpdateReqDto dto) {
+        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member reporter = findMemberByEmail(memberEmail);
+
+        Information information = informationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 제보입니다."));
+
+        // 본인의 제보인지 확인
+        if (!information.getReporter().getId().equals(reporter.getId())) {
+            throw new IllegalArgumentException("본인의 제보만 수정할 수 있습니다.");
+        }
+
+        // 이미 승인되거나 거부된 제보는 수정 불가
+        if (information.getStatus() != InformationStatus.PENDING) {
+            throw new IllegalArgumentException("대기 중인 제보만 수정할 수 있습니다.");
+        }
+
+        // 이미지 업로드 처리
+        if (dto.getPostImage() != null && !dto.getPostImage().isEmpty()) {
+            String postImgUrl = s3ClientFileUpload.upload(dto.getPostImage());
+            information.updateImage(postImgUrl);
+        }
+
+        // 정보 업데이트
+        information.update(dto);
+
+        Information savedInformation = informationRepository.save(information);
+        return InformationDetailDto.fromEntity(savedInformation);
+    }
 
     // 제보자 본인이 자신의 제보 목록 조회
     @Transactional(readOnly = true)
