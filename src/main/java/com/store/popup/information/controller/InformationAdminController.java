@@ -14,6 +14,7 @@ import com.store.popup.information.service.InformationService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.pop.service.PostService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -125,6 +126,14 @@ public class InformationAdminController {
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 일괄 수정 후 변환 실패: " + e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    // 관리자가 팝업 제보를 거절
+    @PostMapping("/reject/{id}")
+    public ResponseEntity<?> rejectInformation(@PathVariable Long id) {
+        InformationDetailDto information = adminInformationService.rejectInformation(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 거절되었습니다.", information);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 }
 

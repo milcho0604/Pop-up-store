@@ -80,5 +80,28 @@ public class AdminInformationService {
     public Information save(Information information) {
         return informationRepository.save(information);
     }
+
+    // 관리자가 제보를 거절
+    public InformationDetailDto rejectInformation(Long id) {
+        checkAdminRole();
+
+        Information information = informationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 제보입니다."));
+
+        // 이미 거부되거나 승인된 제보는 거절 불가
+        if (information.getStatus() == InformationStatus.REJECTED) {
+            throw new IllegalArgumentException("이미 거절된 제보입니다.");
+        }
+
+        if (information.getStatus() == InformationStatus.APPROVED) {
+            throw new IllegalArgumentException("이미 승인된 제보는 거절할 수 없습니다.");
+        }
+
+        // 제보 상태를 REJECTED로 변경
+        information.reject();
+        Information savedInformation = informationRepository.save(information);
+
+        return InformationDetailDto.fromEntity(savedInformation);
+    }
 }
 
