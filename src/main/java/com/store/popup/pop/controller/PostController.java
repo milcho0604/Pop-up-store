@@ -2,11 +2,8 @@ package com.store.popup.pop.controller;
 
 import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
-import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.dto.PostDetailDto;
 import com.store.popup.pop.dto.PostListDto;
-import com.store.popup.pop.dto.PostSaveDto;
-import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.pop.dto.SearchFilterReqDto;
 import com.store.popup.pop.service.PostMetricsService;
 import com.store.popup.pop.service.PostService;
@@ -28,24 +25,6 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final PostMetricsService postMetricsService;
-
-    @PostMapping("/create")
-    public ResponseEntity<?> register(@ModelAttribute PostSaveDto dto){
-        try {
-            Post post = postService.create(dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 등록 성공", post);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }catch (Exception e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "post 등록 실패" + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
-
-    }
 
     // 팝업 목록 조회
     @GetMapping("/list")
@@ -82,40 +61,6 @@ public class PostController {
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // 팝업 수정
-    @PostMapping("/update/{id}")
-    public ResponseEntity<?> updatePost (@PathVariable Long id, @ModelAttribute PostUpdateReqDto dto){
-        try{
-            postService.updatePost(id, dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post가 성공적으로 업데이트 되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // 삭제
-    @PostMapping("/delete/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id){
-        try {
-            postService.deletePost(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post가 삭제되었습니다.",id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
 
