@@ -1,5 +1,6 @@
 package com.store.popup.pop.dto;
 
+import com.store.popup.common.enumdir.Category;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,7 +35,10 @@ public class PostUpdateReqDto {
     
     // 상세 주소
     private String detailAddress;
-    
+
+    // 카테고리
+    private Category category;
+
     // 문자열을 LocalDateTime으로 변환하는 메서드
 
 }

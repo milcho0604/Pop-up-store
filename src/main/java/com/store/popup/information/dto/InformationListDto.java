@@ -1,5 +1,6 @@
 package com.store.popup.information.dto;
 
+import com.store.popup.common.enumdir.Category;
 import com.store.popup.information.domain.InformationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,10 @@ public class InformationListDto {
     
     // 상세 주소
     private String detailAddress;
-    
+
     private InformationStatus status;
+
+    // 카테고리
+    private Category category;
 }
 

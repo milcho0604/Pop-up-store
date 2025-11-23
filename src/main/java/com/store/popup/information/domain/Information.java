@@ -1,6 +1,7 @@
 package com.store.popup.information.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
+import com.store.popup.common.enumdir.Category;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.information.dto.InformationListDto;
@@ -42,6 +43,10 @@ public class Information extends BaseTimeEntity {
     @JoinColumn(name = "reporter_id", nullable = false)
     private Member reporter;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Category category;
+
     // 팝업 스토어 운영 기간
     @Column
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -77,6 +82,7 @@ public class Information extends BaseTimeEntity {
                 .zipcode(this.address != null ? this.address.getZipcode() : null)
                 .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
                 .status(this.status)
+                .category(this.category)
                 .build();
     }
 
@@ -104,6 +110,10 @@ public class Information extends BaseTimeEntity {
         // 내용
         if (dto.getContent() != null) {
             this.content = dto.getContent();
+        }
+        // 카테고리
+        if (dto.getCategory() != null) {
+            this.category = dto.getCategory();
         }
         // 전화번호
         if (dto.getPhoneNumber() != null) {

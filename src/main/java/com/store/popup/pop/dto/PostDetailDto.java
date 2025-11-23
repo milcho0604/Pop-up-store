@@ -1,5 +1,7 @@
 package com.store.popup.pop.dto;
 
+import com.store.popup.common.enumdir.Category;
+import com.store.popup.common.enumdir.PostStatus;
 import com.store.popup.pop.domain.Post;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,9 +37,13 @@ public class PostDetailDto {
     private String city;
     private String street;
     private String zipcode;
-    
+
     // 상세 주소
     private String detailAddress;
+
+    // 카테고리 및 상태
+    private Category category;
+    private PostStatus status;
 
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
         return PostDetailDto.builder()
@@ -60,6 +66,8 @@ public class PostDetailDto {
                 .street(post.getAddress() != null ? post.getAddress().getStreet() : null)
                 .zipcode(post.getAddress() != null ? post.getAddress().getZipcode() : null)
                 .detailAddress(post.getAddress() != null ? post.getAddress().getDetailAddress() : null)
+                .category(post.getCategory())
+                .status(post.getStatus())
                 .build();
     }
 

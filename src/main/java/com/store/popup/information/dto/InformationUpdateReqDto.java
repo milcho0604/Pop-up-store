@@ -1,5 +1,6 @@
 package com.store.popup.information.dto;
 
+import com.store.popup.common.enumdir.Category;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,5 +35,8 @@ public class InformationUpdateReqDto {
     
     // 상세 주소
     private String detailAddress;
+
+    // 카테고리
+    private Category category;
 }
 

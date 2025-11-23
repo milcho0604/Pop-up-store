@@ -2,6 +2,8 @@ package com.store.popup.pop.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
 
+import com.store.popup.common.enumdir.Category;
+import com.store.popup.common.enumdir.PostStatus;
 import com.store.popup.information.domain.Information;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
@@ -44,6 +46,15 @@ public class Post extends BaseTimeEntity {
 
     private String profileImgUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Category category;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    @Builder.Default
+    private PostStatus status = PostStatus.ONGOING;
+
     @Column
     private String phoneNumber;
     // 팝업 스토어 운영 기간
@@ -83,6 +94,8 @@ public class Post extends BaseTimeEntity {
                 .street(this.address != null ? this.address.getStreet() : null)
                 .zipcode(this.address != null ? this.address.getZipcode() : null)
                 .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
+                .category(this.category)
+                .status(this.status)
                 .build();
     }
 
@@ -98,6 +111,10 @@ public class Post extends BaseTimeEntity {
         // 내용
         if (dto.getContent() != null) {
             this.content = dto.getContent();
+        }
+        // 카테고리
+        if (dto.getCategory() != null) {
+            this.category = dto.getCategory();
         }
         // 전화번호
         if (dto.getPhoneNumber() != null) {  // null → 건드리지 않음. "" → 비우고 싶으면 별도 정책.
@@ -129,6 +146,20 @@ public class Post extends BaseTimeEntity {
         return this;
     }
 
+    // 상태를 날짜 기준으로 자동 업데이트
+    public void updateStatusByDate() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.startDate != null && this.endDate != null) {
+            if (now.isBefore(this.startDate)) {
+                this.status = PostStatus.UPCOMING;
+            } else if (now.isAfter(this.endDate)) {
+                this.status = PostStatus.ENDED;
+            } else {
+                this.status = PostStatus.ONGOING;
+            }
+        }
+    }
+
 
     // 조회수 업데이트 메서드
     public void updateViewCount(Long viewCount) {
@@ -142,7 +173,7 @@ public class Post extends BaseTimeEntity {
 
     // Information을 Post로 변환하는 static 메서드
     public static Post convertFromInformation(Information information, Member adminMember, String profileImgUrl) {
-        return Post.builder()
+        Post post = Post.builder()
                 .member(adminMember)
                 .title(information.getTitle())
                 .content(information.getContent())
@@ -152,7 +183,11 @@ public class Post extends BaseTimeEntity {
                 .endDate(information.getEndDate())
                 .address(information.getAddress())
                 .phoneNumber(information.getPhoneNumber())
+                .category(information.getCategory())
                 .build();
+        // 상태를 날짜 기준으로 자동 설정
+        post.updateStatusByDate();
+        return post;
     }
 
 }

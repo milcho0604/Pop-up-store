@@ -1,5 +1,6 @@
 package com.store.popup.information.dto;
 
+import com.store.popup.common.enumdir.Category;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.information.domain.Information;
@@ -44,6 +45,9 @@ public class InformationSaveDto {
     // 상세 주소
     private String detailAddress;
 
+    // 카테고리
+    private Category category;
+
     public Information toEntity(String postImgUrl, Member reporter) {
         Address address = null;
         if (city != null || street != null || zipcode != null || detailAddress != null) {
@@ -64,6 +68,7 @@ public class InformationSaveDto {
                 .endDate(this.endDate)
                 .address(address)
                 .phoneNumber(this.phoneNumber)
+                .category(this.category)
                 .build();
     }
 }

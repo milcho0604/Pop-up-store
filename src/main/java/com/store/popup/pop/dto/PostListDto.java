@@ -1,5 +1,7 @@
 package com.store.popup.pop.dto;
 
+import com.store.popup.common.enumdir.Category;
+import com.store.popup.common.enumdir.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +32,11 @@ public class PostListDto {
     private String city;
     private String street;
     private String zipcode;
-    
+
     // 상세 주소
     private String detailAddress;
+
+    // 카테고리 및 상태
+    private Category category;
+    private PostStatus status;
 }

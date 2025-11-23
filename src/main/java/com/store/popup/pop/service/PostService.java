@@ -10,19 +10,25 @@ import com.store.popup.pop.dto.PostDetailDto;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.pop.dto.PostSaveDto;
+import com.store.popup.pop.dto.SearchFilterReqDto;
 import com.store.popup.pop.policy.PostDuplicateValidator;
 import com.store.popup.pop.repository.PostRepository;
+import com.store.popup.pop.repository.PostSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.AccessDeniedException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -132,6 +138,87 @@ public class PostService {
             throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 포스트를 삭제할 수 없습니다.");
         }
         post.updateDeleteAt();
+    }
+
+    // 검색 및 필터링 (정렬 포함)
+    @Transactional(readOnly = true)
+    public Page<PostListDto> searchAndFilter(SearchFilterReqDto searchFilter, Pageable pageable) {
+        // Specification 생성
+        Specification<Post> spec = PostSpecification.searchWithFilters(searchFilter);
+
+        // 정렬 기준 설정
+        Sort sort = getSort(searchFilter.getSortBy());
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // 검색 실행
+        Page<Post> posts = postRepository.findAll(spec, pageableWithSort);
+
+        // Post -> PostListDto 변환
+        return posts.map(post -> {
+            Long viewCount = postMetricsService.getPostViews(post.getId());
+            Long likeCount = postMetricsService.getPostLikesCount(post.getId());
+            return post.listFromEntity(viewCount, likeCount);
+        });
+    }
+
+    // 검색 및 필터링 (List 반환, 페이징 없음)
+    @Transactional(readOnly = true)
+    public List<PostListDto> searchAndFilterList(SearchFilterReqDto searchFilter) {
+        // Specification 생성
+        Specification<Post> spec = PostSpecification.searchWithFilters(searchFilter);
+
+        // 정렬 기준 설정
+        Sort sort = getSort(searchFilter.getSortBy());
+
+        // 검색 실행
+        List<Post> posts = postRepository.findAll(spec, sort);
+
+        // Post -> PostListDto 변환
+        List<PostListDto> postListDtos = posts.stream().map(post -> {
+            Long viewCount = postMetricsService.getPostViews(post.getId());
+            Long likeCount = postMetricsService.getPostLikesCount(post.getId());
+            return post.listFromEntity(viewCount, likeCount);
+        }).collect(Collectors.toList());
+
+        // 인기순, 조회수순, 마감임박순은 Redis 데이터 기반 정렬이 필요하므로 추가 정렬
+        if (searchFilter.getSortBy() != null) {
+            switch (searchFilter.getSortBy()) {
+                case POPULAR:
+                    postListDtos.sort(Comparator.comparingLong(PostListDto::getLikeCount).reversed());
+                    break;
+                case VIEW_COUNT:
+                    postListDtos.sort(Comparator.comparingLong(PostListDto::getViewCount).reversed());
+                    break;
+                case ENDING_SOON:
+                    postListDtos.sort(Comparator.comparing(PostListDto::getEndDate));
+                    break;
+                default:
+                    // LATEST는 이미 DB에서 정렬됨
+                    break;
+            }
+        }
+
+        return postListDtos;
+    }
+
+    // 정렬 기준에 따른 Sort 객체 생성
+    private Sort getSort(SearchFilterReqDto.SortType sortType) {
+        if (sortType == null) {
+            return Sort.by(Sort.Direction.DESC, "createdAt"); // 기본: 최신순
+        }
+
+        switch (sortType) {
+            case LATEST:
+                return Sort.by(Sort.Direction.DESC, "createdAt");
+            case ENDING_SOON:
+                return Sort.by(Sort.Direction.ASC, "endDate");
+            case POPULAR:
+            case VIEW_COUNT:
+                // 인기순과 조회수순은 Redis 데이터 기반이므로 DB 정렬은 최신순으로
+                return Sort.by(Sort.Direction.DESC, "createdAt");
+            default:
+                return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
     }
 
     // 멤버 객체 반환

@@ -7,6 +7,7 @@ import com.store.popup.pop.dto.PostDetailDto;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.PostSaveDto;
 import com.store.popup.pop.dto.PostUpdateReqDto;
+import com.store.popup.pop.dto.SearchFilterReqDto;
 import com.store.popup.pop.service.PostMetricsService;
 import com.store.popup.pop.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
@@ -173,6 +174,34 @@ public class PostController {
         } catch (Exception e) {
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 수 조회 실패: " + e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 검색 및 필터링 (페이징 지원)
+    @PostMapping("/search")
+    public ResponseEntity<?> searchPosts(@RequestBody SearchFilterReqDto searchFilter, Pageable pageable) {
+        try {
+            Page<PostListDto> results = postService.searchAndFilter(searchFilter, pageable);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실패: " + e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 검색 및 필터링 (전체 리스트)
+    @PostMapping("/search/all")
+    public ResponseEntity<?> searchPostsAll(@RequestBody SearchFilterReqDto searchFilter) {
+        try {
+            List<PostListDto> results = postService.searchAndFilterList(searchFilter);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실패: " + e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
