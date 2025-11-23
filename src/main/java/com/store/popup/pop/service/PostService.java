@@ -201,6 +201,11 @@ public class PostService {
         return postListDtos;
     }
 
+//    정렬 옵션
+//  - LATEST: 최신순 (createdAt 기준)
+//  - POPULAR: 인기순 (좋아요 많은 순, Redis 기반)
+//  - VIEW_COUNT: 조회수 많은 순 (Redis 기반)
+//  - ENDING_SOON: 마감 임박순 (endDate 기준)
     // 정렬 기준에 따른 Sort 객체 생성
     private Sort getSort(SearchFilterReqDto.SortType sortType) {
         if (sortType == null) {
