@@ -2,12 +2,14 @@ package com.store.popup.pop.dto;
 
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.common.enumdir.PostStatus;
+import com.store.popup.tag.dto.TagDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -39,4 +41,7 @@ public class PostListDto {
     // 카테고리 및 상태
     private Category category;
     private PostStatus status;
+
+    // 태그 목록
+    private List<TagDto> tags;
 }

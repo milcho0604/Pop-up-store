@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,6 +39,9 @@ public class PostUpdateReqDto {
 
     // 카테고리
     private Category category;
+
+    // 태그
+    private List<String> tagNames;
 
     // 문자열을 LocalDateTime으로 변환하는 메서드
 

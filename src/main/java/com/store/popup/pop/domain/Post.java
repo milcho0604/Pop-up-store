@@ -2,6 +2,8 @@ package com.store.popup.pop.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
 
+import com.store.popup.tag.domain.Tag;
+import com.store.popup.tag.dto.TagDto;
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.common.enumdir.PostStatus;
 import com.store.popup.information.domain.Information;
@@ -20,6 +22,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
@@ -70,12 +73,24 @@ public class Post extends BaseTimeEntity {
     @Embedded
     private Address address;
 
+    // 조회수
     private@Builder.Default
     Long viewCount = 0L;
 
+    // 신고 목록
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Report> reportList = new ArrayList<>();
+
+    // 태그
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "post_tag",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
 
     public PostListDto listFromEntity(Long viewCount, Long likeCount){
         return PostListDto.builder()
@@ -96,6 +111,10 @@ public class Post extends BaseTimeEntity {
                 .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
                 .category(this.category)
                 .status(this.status)
+                .tags(this.tags != null ?
+                    this.tags.stream()
+                        .map(TagDto::fromEntity)
+                        .collect(Collectors.toList()) : null)
                 .build();
     }
 
@@ -160,6 +179,13 @@ public class Post extends BaseTimeEntity {
         }
     }
 
+    // 태그 업데이트 메서드
+    public void updateTags(List<Tag> newTags) {
+        if (newTags != null) {
+            this.tags.clear();
+            this.tags.addAll(newTags);
+        }
+    }
 
     // 조회수 업데이트 메서드
     public void updateViewCount(Long viewCount) {
@@ -184,6 +210,7 @@ public class Post extends BaseTimeEntity {
                 .address(information.getAddress())
                 .phoneNumber(information.getPhoneNumber())
                 .category(information.getCategory())
+                .tags(new ArrayList<>(information.getTags()))
                 .build();
         // 상태를 날짜 기준으로 자동 설정
         post.updateStatusByDate();

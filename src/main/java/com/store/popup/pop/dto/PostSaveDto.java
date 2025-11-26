@@ -4,6 +4,7 @@ import com.store.popup.common.enumdir.Category;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.pop.domain.Post;
+import com.store.popup.tag.domain.Tag;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Builder
@@ -58,7 +61,9 @@ public class PostSaveDto {
     // 카테고리
     private Category category;
 
-    public Post toEntity(String postImgUrl, Member member, String profileImgUrl) {
+    private List<String> tagNames;
+
+    public Post toEntity(String postImgUrl, Member member, String profileImgUrl, List<Tag> tags) {
 
         Address address = null;
         if (city != null || street != null || zipcode != null || detailAddress != null) {
@@ -81,6 +86,7 @@ public class PostSaveDto {
                 .address(address)
                 .phoneNumber(this.phoneNumber)
                 .category(this.category)
+                .tags(tags != null ? tags : new ArrayList<>())
                 .build();
 
         // 상태를 날짜 기준으로 자동 설정

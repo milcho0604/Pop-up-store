@@ -2,12 +2,14 @@ package com.store.popup.information.dto;
 
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.information.domain.InformationStatus;
+import com.store.popup.tag.dto.TagDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -34,5 +36,8 @@ public class InformationListDto {
 
     // 카테고리
     private Category category;
+
+    // 태그 목록
+    private List<TagDto> tags;
 }
 

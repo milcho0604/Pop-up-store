@@ -14,6 +14,8 @@ import com.store.popup.pop.dto.SearchFilterReqDto;
 import com.store.popup.pop.policy.PostDuplicateValidator;
 import com.store.popup.pop.repository.PostRepository;
 import com.store.popup.pop.repository.PostSpecification;
+import com.store.popup.tag.domain.Tag;
+import com.store.popup.tag.service.TagService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,7 @@ public class PostService {
     private final S3ClientFileUpload s3ClientFileUpload;
     private final PostMetricsService postMetricsService;
     private final PostDuplicateValidator postDuplicateValidator;
+    private final TagService tagService;
 //    private final CommentService commentService;
 
 
@@ -55,14 +58,17 @@ public class PostService {
         MultipartFile postImage = dto.getPostImage(); //게시글 사진
         String profileImgUrl = member.getProfileImgUrl();
 
+        // 태그 처리: tagNames를 Tag 엔티티 리스트로 변환
+        List<Tag> tags = tagService.findOrCreateTags(dto.getTagNames());
+
         Post post;
         if(postImage != null){
             String imageUrl = s3ClientFileUpload.upload(postImage);
-            post = dto.toEntity(imageUrl, member, profileImgUrl);
+            post = dto.toEntity(imageUrl, member, profileImgUrl, tags);
 //            postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
             post = postRepository.save(post);
         }else {
-            post = dto.toEntity(null, member, profileImgUrl);
+            post = dto.toEntity(null, member, profileImgUrl, tags);
 //            postDuplicateValidator.ensurePostNoDuplicateByPlaceAndPeriod(post);
             post = postRepository.save(post);
         }
@@ -125,6 +131,13 @@ public class PostService {
             String imageUrl = s3ClientFileUpload.upload(image);
             post.updateImage(imageUrl);
         }
+
+        // 태그 업데이트 처리
+        if (dto.getTagNames() != null) {
+            List<Tag> tags = tagService.findOrCreateTags(dto.getTagNames());
+            post.updateTags(tags);
+        }
+
         post.update(dto);
         postRepository.save(post);
     }

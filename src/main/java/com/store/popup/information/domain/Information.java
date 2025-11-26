@@ -1,6 +1,8 @@
 package com.store.popup.information.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
+import com.store.popup.tag.domain.Tag;
+import com.store.popup.tag.dto.TagDto;
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
@@ -14,6 +16,9 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor
@@ -66,6 +71,16 @@ public class Information extends BaseTimeEntity {
     @Builder.Default
     private InformationStatus status = InformationStatus.PENDING;
 
+    // 태그
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "info_tag",
+            joinColumns = @JoinColumn(name = "info_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
+
     public InformationListDto listFromEntity() {
         return InformationListDto.builder()
                 .id(this.id)
@@ -83,6 +98,10 @@ public class Information extends BaseTimeEntity {
                 .detailAddress(this.address != null ? this.address.getDetailAddress() : null)
                 .status(this.status)
                 .category(this.category)
+                .tags(this.tags != null ?
+                    this.tags.stream()
+                        .map(TagDto::fromEntity)
+                        .collect(Collectors.toList()) : null)
                 .build();
     }
 
@@ -140,6 +159,14 @@ public class Information extends BaseTimeEntity {
                     .zipcode(dto.getZipcode() != null ? dto.getZipcode() : currentZipcode)
                     .detailAddress(dto.getDetailAddress() != null ? dto.getDetailAddress() : currentDetailAddress)
                     .build();
+        }
+    }
+
+    // 태그 업데이트 메서드
+    public void updateTags(List<Tag> newTags) {
+        if (newTags != null) {
+            this.tags.clear();
+            this.tags.addAll(newTags);
         }
     }
 }

@@ -10,6 +10,8 @@ import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.dto.InformationSaveDto;
 import com.store.popup.information.dto.InformationUpdateReqDto;
 import com.store.popup.information.repository.InformationRepository;
+import com.store.popup.tag.domain.Tag;
+import com.store.popup.tag.service.TagService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class InformationService {
     private final InformationRepository informationRepository;
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final TagService tagService;
 
     // 고객이 팝업 스토어 제보
     public Information create(InformationSaveDto dto) {
@@ -47,7 +50,10 @@ public class InformationService {
             postImgUrl = s3ClientFileUpload.upload(dto.getPostImage());
         }
 
-        Information information = dto.toEntity(postImgUrl, reporter);
+        // 태그 처리
+        List<Tag> tags = tagService.findOrCreateTags(dto.getTagNames());
+
+        Information information = dto.toEntity(postImgUrl, reporter, tags);
         return informationRepository.save(information);
     }
 
@@ -73,6 +79,12 @@ public class InformationService {
         if (dto.getPostImage() != null && !dto.getPostImage().isEmpty()) {
             String postImgUrl = s3ClientFileUpload.upload(dto.getPostImage());
             information.updateImage(postImgUrl);
+        }
+
+        // 태그 업데이트 처리
+        if (dto.getTagNames() != null) {
+            List<Tag> tags = tagService.findOrCreateTags(dto.getTagNames());
+            information.updateTags(tags);
         }
 
         // 정보 업데이트

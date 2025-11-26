@@ -3,12 +3,15 @@ package com.store.popup.pop.dto;
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.common.enumdir.PostStatus;
 import com.store.popup.pop.domain.Post;
+import com.store.popup.tag.dto.TagDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -45,6 +48,9 @@ public class PostDetailDto {
     private Category category;
     private PostStatus status;
 
+    // 태그 목록
+    private List<TagDto> tags;
+
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
         return PostDetailDto.builder()
                 .id(post.getId())
@@ -68,6 +74,10 @@ public class PostDetailDto {
                 .detailAddress(post.getAddress() != null ? post.getAddress().getDetailAddress() : null)
                 .category(post.getCategory())
                 .status(post.getStatus())
+                .tags(post.getTags() != null ?
+                    post.getTags().stream()
+                        .map(TagDto::fromEntity)
+                        .collect(Collectors.toList()) : null)
                 .build();
     }
 

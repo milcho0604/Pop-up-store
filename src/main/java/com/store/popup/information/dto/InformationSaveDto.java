@@ -1,5 +1,6 @@
 package com.store.popup.information.dto;
 
+import com.store.popup.tag.domain.Tag;
 import com.store.popup.common.enumdir.Category;
 import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
@@ -13,6 +14,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Data
@@ -48,7 +51,10 @@ public class InformationSaveDto {
     // 카테고리
     private Category category;
 
-    public Information toEntity(String postImgUrl, Member reporter) {
+    // 태그
+    private List<String> tagNames;
+
+    public Information toEntity(String postImgUrl, Member reporter, List<Tag> tags) {
         Address address = null;
         if (city != null || street != null || zipcode != null || detailAddress != null) {
             address = Address.builder()
@@ -69,6 +75,7 @@ public class InformationSaveDto {
                 .address(address)
                 .phoneNumber(this.phoneNumber)
                 .category(this.category)
+                .tags(tags != null ? tags : new ArrayList<>())
                 .build();
     }
 }

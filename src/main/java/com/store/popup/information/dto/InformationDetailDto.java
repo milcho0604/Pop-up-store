@@ -2,12 +2,15 @@ package com.store.popup.information.dto;
 
 import com.store.popup.information.domain.Information;
 import com.store.popup.information.domain.InformationStatus;
+import com.store.popup.tag.dto.TagDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -34,6 +37,9 @@ public class InformationDetailDto {
     private InformationStatus status;
     private String phoneNumber;
 
+    // 태그 목록
+    private List<TagDto> tags;
+
     public static InformationDetailDto fromEntity(Information information) {
         return InformationDetailDto.builder()
                 .id(information.getId())
@@ -52,6 +58,10 @@ public class InformationDetailDto {
                 .detailAddress(information.getAddress() != null ? information.getAddress().getDetailAddress() : null)
                 .status(information.getStatus())
                 .phoneNumber(information.getPhoneNumber())
+                .tags(information.getTags() != null ?
+                    information.getTags().stream()
+                        .map(TagDto::fromEntity)
+                        .collect(Collectors.toList()) : null)
                 .build();
     }
 }
