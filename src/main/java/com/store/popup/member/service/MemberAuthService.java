@@ -11,6 +11,7 @@ import com.store.popup.member.dto.PasswordResetDto;
 import com.store.popup.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -137,6 +138,11 @@ public class MemberAuthService {
         if (passwordEncoder.matches(newPassword, currentPassword)) {
             throw new RuntimeException("이전과 동일한 비밀번호로 설정할 수 없습니다.");
         }
+    }
+
+    public Member getCurrentMember() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return memberRepository.findByMemberEmailOrThrow(email);
     }
 
 }
