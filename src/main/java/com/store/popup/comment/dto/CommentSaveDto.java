@@ -20,12 +20,12 @@ public class CommentSaveDto {
     @NotEmpty(message = "content is essential")
     private String content;
 
-    public Comment toEntity(Post post, Comment parent, String writerEmail, String name, String profileImg){
+    public Comment toEntity(Post post, Comment parent, String writerEmail, String nickName, String profileImg){
         return Comment.builder()
                 .post(post)
                 .doctorEmail(writerEmail)
                 .content(this.content)
-                .name(name)
+                .nickName(nickName)
                 .profileImg(profileImg)
                 .parent(parent)
                 .build();

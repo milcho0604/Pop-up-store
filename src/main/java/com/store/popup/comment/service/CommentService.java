@@ -1,6 +1,7 @@
 package com.store.popup.comment.service;
 
 import com.store.popup.comment.domain.Comment;
+import com.store.popup.comment.dto.CommentDetailDto;
 import com.store.popup.comment.dto.CommentSaveDto;
 import com.store.popup.comment.dto.ReplyCommentSaveDto;
 import com.store.popup.comment.repository.CommentRepository;
@@ -13,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +40,7 @@ public class CommentService {
 
         if (dto.getPostId() != null){
             Post post = postRepository.findById(dto.getPostId()).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 post입니다."));
-            savedComment = dto.toEntity(post, null, member.getMemberEmail(), member.getName(), member.getProfileImgUrl());
+            savedComment = dto.toEntity(post, null, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl());
             commentRepository.save(savedComment);
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");
@@ -59,12 +63,33 @@ public class CommentService {
             if(parentComment.getParent() != null){
                 throw new IllegalArgumentException("대댓글에는 댓글이 허용되지 않습니다.");
             }
-            savedComment = dto.toEntity(post, parentComment, member.getMemberEmail(), member.getName(), member.getProfileImgUrl());
+            savedComment = dto.toEntity(post, parentComment, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl());
             commentRepository.save(savedComment);
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");
         }
         return savedComment;
+    }
+    /*
+    * 댓글 업데이트 메서드 만들기
+    * */
+
+    public List<CommentDetailDto> getCommentByPostId(Long postId){
+        List<Comment> comments = commentRepository.findByPostId(postId);
+
+        return comments.stream()
+                .filter(comment -> comment.getDeletedAt() == null)
+                .map(comment -> CommentDetailDto.builder()
+                        .id(comment.getId())
+                        .content(comment.getContent())
+                        .doctorEmail(comment.getDoctorEmail())
+                        .nickName(comment.getNickName())
+                        .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
+                        .profileImg(comment.getProfileImg())
+                        .createdTimeAt(comment.getCreatedAt())
+                        .updatedTimeAt(comment.getUpdatedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
 

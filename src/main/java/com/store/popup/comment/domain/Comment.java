@@ -1,5 +1,7 @@
 package com.store.popup.comment.domain;
 
+import com.store.popup.comment.dto.CommentDetailDto;
+import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.pop.domain.Post;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +11,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class Comment {
+public class Comment extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
@@ -28,6 +30,16 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
-    private String name;
+    private String nickName;
     private String profileImg;
+
+    public CommentDetailDto listFromEntity(){
+        return CommentDetailDto.builder()
+                .id(this.id)
+                .doctorEmail(this.doctorEmail)
+                .content(this.content)
+                .createdTimeAt(this.getCreatedAt())
+                .updatedTimeAt(this.getUpdatedAt())
+                .build();
+    }
 }
