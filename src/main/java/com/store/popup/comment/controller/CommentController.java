@@ -6,9 +6,7 @@ import com.store.popup.comment.dto.CommentSaveDto;
 import com.store.popup.comment.dto.CommentUpdateReqDto;
 import com.store.popup.comment.dto.ReplyCommentSaveDto;
 import com.store.popup.comment.service.CommentService;
-import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,82 +22,36 @@ public class CommentController {
 
     // 댓글 작성
     @PostMapping("/create")
-    public ResponseEntity<?> register(@RequestBody CommentSaveDto dto){
-        try {
-            Comment comment = commentService.createComment(dto);
-            if (dto.getPostId() != null){
-                CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED,"Comment 등록 성공", comment);
-                return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
-            }else {
-                throw new IllegalArgumentException("postId must be provided.");
-            }
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> register(@RequestBody CommentSaveDto dto){
+        Comment comment = commentService.createComment(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "Comment 등록 성공", comment);
+        return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
     }
     // 대댓글
     @PostMapping("/reply")
-    public ResponseEntity<?> reply(@RequestBody ReplyCommentSaveDto dto){
-        try {
-            Comment comment = commentService.createReplyComment(dto);
-            if (dto.getPostId() != null){
-                CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "대댓글 등록 성공", comment);
-                return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
-            } else {
-                throw new IllegalArgumentException("postId must be provided.");
-            }
-        } catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()) ;
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> reply(@RequestBody ReplyCommentSaveDto dto){
+        Comment comment = commentService.createReplyComment(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "대댓글 등록 성공", comment);
+        return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
     }
     // 댓글 리스트 컨트롤러
     @GetMapping("/list/{id}")
-    public ResponseEntity<?> commentListByPost(@PathVariable Long id){
-        try {
-            List<CommentDetailDto> comments = commentService.getCommentByPostId(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post별 comment 목록 조회 성공", comments);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<CommonResDto> commentListByPost(@PathVariable Long id){
+        List<CommentDetailDto> comments = commentService.getCommentByPostId(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post별 comment 목록 조회 성공", comments);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentUpdateReqDto dto){
-        try {
-            commentService.updateComment(id, dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 수정되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> updateComment(@PathVariable Long id, @RequestBody CommentUpdateReqDto dto){
+        commentService.updateComment(id, dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 수정되었습니다.", id);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long id){
-        try {
-            commentService.deleteComment(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 삭제되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> deleteComment(@PathVariable Long id){
+        commentService.deleteComment(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 삭제되었습니다.", id);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 }

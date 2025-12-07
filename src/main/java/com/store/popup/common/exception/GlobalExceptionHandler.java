@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
 @RestControllerAdvice
-public class MemberExceptionHandler {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
@@ -19,7 +19,7 @@ public class MemberExceptionHandler {
         return ResponseEntity.status(exceptionType.httpStatus())
                 .body(ErrorResponse.of(exceptionType));
     }
-    
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<CommonErrorDto> handleEntityNotFoundException(EntityNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -31,7 +31,7 @@ public class MemberExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()));
     }
-    
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonErrorDto> handleException(Exception e) {
         e.printStackTrace();

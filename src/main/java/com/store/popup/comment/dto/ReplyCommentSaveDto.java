@@ -22,7 +22,7 @@ public class ReplyCommentSaveDto {
     public Comment toEntity(Post post, Comment parent, String writerEmail, String nickName, String profileImg){
         return Comment.builder()
                 .post(post)
-                .doctorEmail(writerEmail)
+                .memberEmail(writerEmail)
                 .content(this.content)
                 .nickName(nickName)
                 .profileImg(profileImg)
