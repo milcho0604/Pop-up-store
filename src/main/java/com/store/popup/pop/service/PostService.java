@@ -139,7 +139,6 @@ public class PostService {
         }
 
         post.update(dto);
-        postRepository.save(post);
     }
 
     public void deletePost(Long id){

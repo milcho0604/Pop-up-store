@@ -1,6 +1,7 @@
 package com.store.popup.comment.domain;
 
 import com.store.popup.comment.dto.CommentDetailDto;
+import com.store.popup.comment.dto.CommentUpdateReqDto;
 import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.pop.domain.Post;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "comment_id")
     private Long id;
     @Column(nullable = false)
-    private String doctorEmail; //post 작성자 / 의사
+    private String memberEmail; //post 작성자 / 의사
     @Column(nullable = false, length = 3000)
     private String content;
 
@@ -36,10 +37,15 @@ public class Comment extends BaseTimeEntity {
     public CommentDetailDto listFromEntity(){
         return CommentDetailDto.builder()
                 .id(this.id)
-                .doctorEmail(this.doctorEmail)
+                .doctorEmail(this.memberEmail)
                 .content(this.content)
                 .createdTimeAt(this.getCreatedAt())
                 .updatedTimeAt(this.getUpdatedAt())
                 .build();
+    }
+
+    public Comment update(CommentUpdateReqDto dto){
+        this.content = dto.getContent();
+        return this;
     }
 }

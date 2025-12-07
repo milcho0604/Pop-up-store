@@ -21,6 +21,7 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
+    // 댓글 작성
     @PostMapping("/create")
     public ResponseEntity<?> register(@RequestBody CommentSaveDto dto){
         try {
@@ -37,6 +38,7 @@ public class CommentController {
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
+    // 대댓글
     @PostMapping("/reply")
     public ResponseEntity<?> reply(@RequestBody ReplyCommentSaveDto dto){
         try {
@@ -66,5 +68,4 @@ public class CommentController {
             return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
         }
     }
-
 }

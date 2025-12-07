@@ -3,6 +3,7 @@ package com.store.popup.comment.service;
 import com.store.popup.comment.domain.Comment;
 import com.store.popup.comment.dto.CommentDetailDto;
 import com.store.popup.comment.dto.CommentSaveDto;
+import com.store.popup.comment.dto.CommentUpdateReqDto;
 import com.store.popup.comment.dto.ReplyCommentSaveDto;
 import com.store.popup.comment.repository.CommentRepository;
 import com.store.popup.member.domain.Member;
@@ -15,7 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,9 +74,23 @@ public class CommentService {
         }
         return savedComment;
     }
-    /*
-    * 댓글 업데이트 메서드 만들기
-    * */
+
+    // 댓글 업데이트
+    public void updateComment(Long id, CommentUpdateReqDto dto){
+        Member member  = memberAuthService.getCurrentMember();
+        Comment comment = commentRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 comment입니다."));
+        int reportCount = member.getReportCount();
+        // 신고 횟수가 5 이상일 경우 예외 처리
+        if (reportCount >= 5) {
+            throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 댓글을 수정할 수 없습니다.");
+        }
+
+        //현재 로그인 되어있는 사용자가 comment의 작성자인 경우
+        if (!Objects.equals(member.getMemberEmail(), comment.getMemberEmail())){
+            throw new IllegalArgumentException("작성자 이외에는 수정할 수 없습니다.");
+        }
+        comment.update(dto);
+    }
 
     public List<CommentDetailDto> getCommentByPostId(Long postId){
         List<Comment> comments = commentRepository.findByPostId(postId);
@@ -82,7 +100,7 @@ public class CommentService {
                 .map(comment -> CommentDetailDto.builder()
                         .id(comment.getId())
                         .content(comment.getContent())
-                        .doctorEmail(comment.getDoctorEmail())
+                        .doctorEmail(comment.getMemberEmail())
                         .nickName(comment.getNickName())
                         .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                         .profileImg(comment.getProfileImg())
