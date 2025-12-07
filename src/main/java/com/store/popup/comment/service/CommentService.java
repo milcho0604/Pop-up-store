@@ -92,6 +92,7 @@ public class CommentService {
         comment.update(dto);
     }
 
+    // 댓글 리스트
     public List<CommentDetailDto> getCommentByPostId(Long postId){
         List<Comment> comments = commentRepository.findByPostId(postId);
 
@@ -109,5 +110,20 @@ public class CommentService {
                         .build())
                 .collect(Collectors.toList());
     }
+    // 댓글 삭제
+    public void deleteComment(Long id){
+        Member member  = memberAuthService.getCurrentMember();
+        Comment comment = commentRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 comment입니다."));
+        int reportCount = member.getReportCount();
+        // 신고 횟수가 5 이상일 경우 예외 처리
+        if (!member.getMemberEmail().equals(comment.getMemberEmail())){
+            throw new IllegalArgumentException("작성자 이외에는 삭제할 수 없습니다.");
+        }
+        if (reportCount >= 5) {
+            throw new IllegalArgumentException("신고 횟수가 5회 이상인 회원은 댓글을 삭제할 수 없습니다.");
+        }
+        comment.updateDeleteAt();
+    }
+
 }
 

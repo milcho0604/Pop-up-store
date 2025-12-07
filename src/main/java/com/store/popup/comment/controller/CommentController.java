@@ -3,6 +3,7 @@ package com.store.popup.comment.controller;
 import com.store.popup.comment.domain.Comment;
 import com.store.popup.comment.dto.CommentDetailDto;
 import com.store.popup.comment.dto.CommentSaveDto;
+import com.store.popup.comment.dto.CommentUpdateReqDto;
 import com.store.popup.comment.dto.ReplyCommentSaveDto;
 import com.store.popup.comment.service.CommentService;
 import com.store.popup.common.dto.CommonErrorDto;
@@ -66,6 +67,39 @@ public class CommentController {
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+        }
+    }
+    @PostMapping("/update/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentUpdateReqDto dto){
+        try {
+            commentService.updateComment(id, dto);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 수정되었습니다.", id);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        }catch (EntityNotFoundException e){
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable Long id){
+        try {
+            commentService.deleteComment(id);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 삭제되었습니다.", id);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        }catch (EntityNotFoundException e){
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
 }
