@@ -1,13 +1,11 @@
 package com.store.popup.pop.controller;
 
-import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
 import com.store.popup.pop.dto.PostDetailDto;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.SearchFilterReqDto;
 import com.store.popup.pop.service.PostMetricsService;
 import com.store.popup.pop.service.PostService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -52,103 +50,61 @@ public class PostController {
 
     // 포스트 상세 내역
     @GetMapping("/detail/{id}")
-    public ResponseEntity<?> getPostDetail(@PathVariable Long id){
-        try {
-            PostDetailDto postDetail = postService.getPostDetail(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "Post 상세정보를 조회합니다.", postDetail);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        }catch (EntityNotFoundException e){
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<CommonResDto> getPostDetail(@PathVariable Long id){
+        PostDetailDto postDetail = postService.getPostDetail(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "Post 상세정보를 조회합니다.", postDetail);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 조회수 증가 및 조회
     @GetMapping("/detail/views/{id}")
-    public ResponseEntity<?> getPostViews(@PathVariable Long id) {
-        try {
-            postMetricsService.incrementPostViews(id); // 조회수 증가
-            Long views = postMetricsService.getPostViews(id); // 조회수 조회
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "조회수를 조회합니다.", views);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "조회수 조회 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> getPostViews(@PathVariable Long id) {
+        postMetricsService.incrementPostViews(id); // 조회수 증가
+        Long views = postMetricsService.getPostViews(id); // 조회수 조회
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "조회수를 조회합니다.", views);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 좋아요 추가
     @PostMapping("/detail/like/{id}")
-    public ResponseEntity<?> likePost(@PathVariable Long id) {
-        try {
-            postMetricsService.likePost(id);
-            Long like = postMetricsService.getPostLikesCount(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 추가되었습니다.", like);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 추가 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> likePost(@PathVariable Long id) {
+        postMetricsService.likePost(id);
+        Long like = postMetricsService.getPostLikesCount(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 추가되었습니다.", like);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 좋아요 취소
     @PostMapping("/detail/unlike/{id}")
-    public ResponseEntity<?> unlikePost(@PathVariable Long id) {
-        try {
-            postMetricsService.unlikePost(id);
-            Long like = postMetricsService.getPostLikesCount(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 취소되었습니다.", like);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 취소 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> unlikePost(@PathVariable Long id) {
+        postMetricsService.unlikePost(id);
+        Long like = postMetricsService.getPostLikesCount(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요가 취소되었습니다.", like);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 좋아요 수 조회
     @GetMapping("/detail/{id}/likes")
-    public ResponseEntity<?> getPostLikesCount(@PathVariable Long id) {
-        try {
-            Long likesCount = postMetricsService.getPostLikesCount(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요 수를 조회합니다.", likesCount);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 수 조회 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> getPostLikesCount(@PathVariable Long id) {
+        Long likesCount = postMetricsService.getPostLikesCount(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요 수를 조회합니다.", likesCount);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 검색 및 필터링 (페이징 지원)
     @PostMapping("/search")
-    public ResponseEntity<?> searchPosts(@RequestBody SearchFilterReqDto searchFilter, Pageable pageable) {
-        try {
-            Page<PostListDto> results = postService.searchAndFilter(searchFilter, pageable);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> searchPosts(@RequestBody SearchFilterReqDto searchFilter, Pageable pageable) {
+        Page<PostListDto> results = postService.searchAndFilter(searchFilter, pageable);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 검색 및 필터링 (전체 리스트)
     @PostMapping("/search/all")
-    public ResponseEntity<?> searchPostsAll(@RequestBody SearchFilterReqDto searchFilter) {
-        try {
-            List<PostListDto> results = postService.searchAndFilterList(searchFilter);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<CommonResDto> searchPostsAll(@RequestBody SearchFilterReqDto searchFilter) {
+        List<PostListDto> results = postService.searchAndFilterList(searchFilter);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
 }
