@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,6 +32,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CommonErrorDto> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<CommonErrorDto> handleAccessDeniedException(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new CommonErrorDto(HttpStatus.FORBIDDEN, e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
