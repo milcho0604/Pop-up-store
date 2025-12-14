@@ -16,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -98,16 +96,7 @@ public class CommentService {
 
         return comments.stream()
                 .filter(comment -> comment.getDeletedAt() == null)
-                .map(comment -> CommentDetailDto.builder()
-                        .id(comment.getId())
-                        .content(comment.getContent())
-                        .doctorEmail(comment.getMemberEmail())
-                        .nickName(comment.getNickName())
-                        .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
-                        .profileImg(comment.getProfileImg())
-                        .createdTimeAt(comment.getCreatedAt())
-                        .updatedTimeAt(comment.getUpdatedAt())
-                        .build())
+                .map(Comment::toDto)
                 .collect(Collectors.toList());
     }
     // 댓글 삭제

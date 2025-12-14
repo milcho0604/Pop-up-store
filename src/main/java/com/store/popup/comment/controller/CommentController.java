@@ -24,14 +24,14 @@ public class CommentController {
     @PostMapping("/create")
     public ResponseEntity<CommonResDto> register(@RequestBody CommentSaveDto dto){
         Comment comment = commentService.createComment(dto);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "Comment 등록 성공", comment);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "Comment 등록 성공", comment.toDto());
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
     }
     // 대댓글
     @PostMapping("/reply")
     public ResponseEntity<CommonResDto> reply(@RequestBody ReplyCommentSaveDto dto){
         Comment comment = commentService.createReplyComment(dto);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "대댓글 등록 성공", comment);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "대댓글 등록 성공", comment.toDto());
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
     }
     // 댓글 리스트 컨트롤러

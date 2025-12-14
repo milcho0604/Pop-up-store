@@ -4,6 +4,7 @@ import com.store.popup.comment.dto.CommentDetailDto;
 import com.store.popup.comment.dto.CommentUpdateReqDto;
 import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.pop.domain.Post;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,7 @@ public class Comment extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
+    @JsonIgnore
     private Post post;
 
     //댓글 대댓글, 대대댓글... 관계
@@ -39,6 +41,20 @@ public class Comment extends BaseTimeEntity {
                 .id(this.id)
                 .doctorEmail(this.memberEmail)
                 .content(this.content)
+                .createdTimeAt(this.getCreatedAt())
+                .updatedTimeAt(this.getUpdatedAt())
+                .build();
+    }
+
+    public CommentDetailDto toDto(){
+        return CommentDetailDto.builder()
+                .id(this.id)
+                .content(this.content)
+                .doctorEmail(this.memberEmail)
+                .nickName(this.nickName)
+                .parentId(this.parent != null ? this.parent.getId() : null)
+                .profileImg(this.profileImg)
+                .PostId(this.post != null ? this.post.getId() : null)
                 .createdTimeAt(this.getCreatedAt())
                 .updatedTimeAt(this.getUpdatedAt())
                 .build();

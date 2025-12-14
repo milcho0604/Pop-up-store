@@ -12,6 +12,7 @@ import com.store.popup.member.domain.Member;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.PostUpdateReqDto;
 import com.store.popup.report.domain.Report;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -80,6 +81,7 @@ public class Post extends BaseTimeEntity {
     // 신고 목록
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Report> reportList = new ArrayList<>();
 
     // 태그
