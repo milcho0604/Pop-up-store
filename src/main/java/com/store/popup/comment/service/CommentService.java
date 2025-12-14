@@ -74,9 +74,9 @@ public class CommentService {
     }
 
     // 댓글 업데이트
-    public void updateComment(Long id, CommentUpdateReqDto dto){
+    public void updateComment(CommentUpdateReqDto dto){
         Member member  = memberAuthService.getCurrentMember();
-        Comment comment = commentRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 comment입니다."));
+        Comment comment = commentRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 comment입니다."));
         int reportCount = member.getReportCount();
         // 신고 횟수가 5 이상일 경우 예외 처리
         if (reportCount >= 5) {

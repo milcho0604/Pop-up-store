@@ -41,10 +41,10 @@ public class CommentController {
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post별 comment 목록 조회 성공", comments);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
-    @PostMapping("/update/{id}")
-    public ResponseEntity<CommonResDto> updateComment(@PathVariable Long id, @RequestBody CommentUpdateReqDto dto){
-        commentService.updateComment(id, dto);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 수정되었습니다.", id);
+    @PostMapping("/update")
+    public ResponseEntity<CommonResDto> updateComment(@RequestBody CommentUpdateReqDto dto){
+        commentService.updateComment(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "comment가 성공적으로 수정되었습니다.", dto.getId());
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 

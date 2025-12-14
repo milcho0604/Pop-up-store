@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 public class CommentUpdateReqDto {
     private Long id;
     private Long postId;
-    private String doctorEmail;
     private String content;
     private LocalDateTime updateTime;
 }
