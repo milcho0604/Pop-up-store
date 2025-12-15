@@ -1,20 +1,13 @@
 package com.store.popup.information.controller;
 
-import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
-import com.store.popup.information.domain.Information;
 import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.information.dto.InformationListDto;
-import com.store.popup.information.dto.InformationSaveDto;
-import com.store.popup.information.dto.InformationUpdateReqDto;
 import com.store.popup.information.service.AdminInformationService;
 import com.store.popup.information.service.InformationConvertService;
-import com.store.popup.information.service.InformationService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.dto.PostUpdateReqDto;
-import com.store.popup.pop.service.PostService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,101 +29,65 @@ public class InformationAdminController {
 
     // 관리자가 제보 목록 조회 (페이지네이션, 상태별 필터링 가능)
     @GetMapping("/list")
-    public ResponseEntity<?> getInformationList(
+    public ResponseEntity<CommonResDto> getInformationList(
             Pageable pageable,
             @RequestParam(required = false) InformationStatus status) {
-        try {
-            Page<InformationListDto> informations = adminInformationService.getInformationList(pageable, status);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 목록을 조회합니다.", informations);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 목록 조회 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+        Page<InformationListDto> informations = adminInformationService.getInformationList(pageable, status);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 목록을 조회합니다.", informations);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 제보 상세 조회
     @GetMapping("/detail/{id}")
-    public ResponseEntity<?> getInformationDetail(@PathVariable Long id) {
-        try {
-            InformationDetailDto information = adminInformationService.getInformationDetail(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 상세정보를 조회합니다.", information);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 상세 조회 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> getInformationDetail(@PathVariable Long id) {
+        InformationDetailDto information = adminInformationService.getInformationDetail(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보 상세정보를 조회합니다.", information);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 단일 제보를 Post로 변환
     @PostMapping("/convert/{id}")
-    public ResponseEntity<?> convertInformationToPost(@PathVariable Long id) {
-        try {
-            Post post = informationConvertService.convertInformationToPost(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 Post로 변환되었습니다.", post.getId());
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 변환 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> convertInformationToPost(@PathVariable Long id) {
+        Post post = informationConvertService.convertInformationToPost(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 Post로 변환되었습니다.", post.getId());
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 여러 제보를 Post로 일괄 변환
     @PostMapping("/convert/batch")
-    public ResponseEntity<?> convertInformationsToPosts(@RequestBody List<Long> informationIds) {
-        try {
-            List<Post> posts = informationConvertService.convertInformationsToPosts(informationIds);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, 
-                    posts.size() + "개의 제보가 Post로 변환되었습니다.", 
-                    posts.stream().map(Post::getId).toList());
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 일괄 변환 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<CommonResDto> convertInformationsToPosts(@RequestBody List<Long> informationIds) {
+        List<Post> posts = informationConvertService.convertInformationsToPosts(informationIds);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK,
+                posts.size() + "개의 제보가 Post로 변환되었습니다.",
+                posts.stream().map(Post::getId).toList());
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 단일 제보를 정보 수정 후 Post로 변환
     @PostMapping("/convert/{id}/with-update")
-    public ResponseEntity<?> convertInformationToPostWithUpdate(
+    public ResponseEntity<CommonResDto> convertInformationToPostWithUpdate(
             @PathVariable Long id,
             @ModelAttribute PostUpdateReqDto dto) {
-        try {
-            Post post = informationConvertService.convertInformationToPostWithUpdate(id, dto);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 수정 후 Post로 변환되었습니다.", post.getId());
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 수정 후 변환 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+        Post post = informationConvertService.convertInformationToPostWithUpdate(id, dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 수정 후 Post로 변환되었습니다.", post.getId());
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 여러 제보를 정보 수정 후 Post로 일괄 변환
     @PostMapping("/convert/batch/with-update")
-    public ResponseEntity<?> convertInformationsToPostsWithUpdate(
+    public ResponseEntity<CommonResDto> convertInformationsToPostsWithUpdate(
             @RequestParam List<Long> informationIds,
             @RequestBody List<PostUpdateReqDto> updateDtos) {
-        try {
-            List<Post> posts = informationConvertService.convertInformationsToPostsWithUpdate(informationIds, updateDtos);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, 
-                    posts.size() + "개의 제보가 수정 후 Post로 변환되었습니다.", 
-                    posts.stream().map(Post::getId).toList());
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, "제보 일괄 수정 후 변환 실패: " + e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
+        List<Post> posts = informationConvertService.convertInformationsToPostsWithUpdate(informationIds, updateDtos);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK,
+                posts.size() + "개의 제보가 수정 후 Post로 변환되었습니다.",
+                posts.stream().map(Post::getId).toList());
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // 관리자가 팝업 제보를 거절
     @PostMapping("/reject/{id}")
-    public ResponseEntity<?> rejectInformation(@PathVariable Long id) {
+    public ResponseEntity<CommonResDto> rejectInformation(@PathVariable Long id) {
         InformationDetailDto information = adminInformationService.rejectInformation(id);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 거절되었습니다.", information);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
