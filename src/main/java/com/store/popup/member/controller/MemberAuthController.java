@@ -1,7 +1,6 @@
 package com.store.popup.member.controller;
 
 
-import com.store.popup.common.dto.CommonErrorDto;
 import com.store.popup.common.dto.CommonResDto;
 import com.store.popup.member.dto.*;
 import com.store.popup.member.service.MemberAuthService;
@@ -29,85 +28,44 @@ public class MemberAuthController {
     }
     // 이메일 인증
     @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestBody EmailVerificationDto verificationDto) {
-        try {
-            boolean isVerified = memberService.verifyEmail(verificationDto.getEmail(), verificationDto.getCode());
-            if (isVerified) {
-                return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이메일 인증 성공", null));
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new CommonResDto(HttpStatus.BAD_REQUEST, "이메일 인증에 실패했습니다.", null));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public ResponseEntity<CommonResDto> verifyEmail(@RequestBody EmailVerificationDto verificationDto) {
+        boolean isVerified = memberService.verifyEmail(verificationDto.getEmail(), verificationDto.getCode());
+        if (isVerified) {
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이메일 인증 성공", null));
+        } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "이메일 인증에 실패했습니다: " + e.getMessage(), null));
+                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "이메일 인증에 실패했습니다.", null));
         }
     }
 
     // 회원가입
     @PostMapping("/sign")
-    public ResponseEntity<?> register(MemberSaveReqDto saveReqDto,
+    public ResponseEntity<CommonResDto> register(MemberSaveReqDto saveReqDto,
                                       @RequestPart(value = "image", required = false) MultipartFile imageSsr) {
-        try {
-            memberService.create(saveReqDto, imageSsr);
-            String info = "아이디: " + saveReqDto.getMemberEmail();
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "회원가입 성공", info));
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "회원가입에 실패했습니다: " + e.getMessage(), null));
-        }
+        memberService.create(saveReqDto, imageSsr);
+        String info = "아이디: " + saveReqDto.getMemberEmail();
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "회원가입 성공", info));
     }
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody MemberLoginDto loginDto) {
-        try {
-            String token = memberService.login(loginDto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "로그인 성공", token));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new CommonErrorDto(HttpStatus.FORBIDDEN, "관계자만 로그인이 가능합니다. 필요합니다."));
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            if (e.getMessage().contains("비활성화 상태")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()));
-            }
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .body(new CommonErrorDto(HttpStatus.UNPROCESSABLE_ENTITY, "잘못된 이메일/비밀번호입니다."));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다."));
-        }
+    public ResponseEntity<CommonResDto> login(@RequestBody MemberLoginDto loginDto) {
+        String token = memberService.login(loginDto);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "로그인 성공", token));
     }
 
     // 비밀번호 재설정 링크 전송
     @PostMapping("/find/password")
-    public ResponseEntity<?> findPassword(@RequestBody MemberFindPasswordDto dto) {
-        try {
-            memberService.sendPasswordResetLink(dto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정 링크를 전송하였습니다.", dto));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "올바른 이메일을 입력해주세요.", null));
-        }
+    public ResponseEntity<CommonResDto> findPassword(@RequestBody MemberFindPasswordDto dto) {
+        memberService.sendPasswordResetLink(dto);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정 링크를 전송하였습니다.", dto));
     }
 
     // 비밀번호 재설정
     @PostMapping("/reset/password")
-    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto dto) {
-        try {
-            memberService.resetPassword(dto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정에 성공하였습니다.", HttpStatus.OK));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CommonResDto(HttpStatus.BAD_REQUEST, "비밀번호 재설정에 실패했습니다: " + e.getMessage(), HttpStatus.BAD_REQUEST));
-        }
+    public ResponseEntity<CommonResDto> resetPassword(@RequestBody PasswordResetDto dto) {
+        memberService.resetPassword(dto);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 재설정에 성공하였습니다.", HttpStatus.OK));
     }
 
     // 비밀번호 찾기를 위한 토큰 로직
