@@ -2,6 +2,7 @@ package com.store.popup.information.service;
 
 import com.store.popup.common.enumdir.Role;
 import com.store.popup.common.util.S3ClientFileUpload;
+import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.information.domain.Information;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -267,6 +269,46 @@ public class InformationConvertService {
     private Member findMemberByEmail(String email){
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+    }
+
+    // 승인 취소: Information을 PENDING으로 되돌리고 연결된 Post를 soft delete
+    @Transactional
+    public InformationDetailDto cancelApproval(Long informationId) {
+        checkAdminRole();
+
+        List<Information> informations = informationService.findByIds(List.of(informationId));
+        if (informations.isEmpty()) {
+            throw new EntityNotFoundException("존재하지 않는 제보입니다.");
+        }
+        Information information = informations.get(0);
+
+        // 승인된 제보만 취소 가능
+        if (information.getStatus() != InformationStatus.APPROVED) {
+            throw new IllegalArgumentException("승인된 제보만 취소할 수 있습니다.");
+        }
+
+        // Information의 deletedAt을 null로 설정 (soft delete 취소)
+        information.acceptHospitalAdmin();
+
+        // Information 상태를 PENDING으로 변경
+        information.resetToPending();
+        // @Transactional이 있어서 더티 체킹으로 자동 저장됨
+
+        // 연결된 Post 찾기 (같은 주소와 기간)
+        if (information.getAddress() != null && information.getStartDate() != null && information.getEndDate() != null) {
+            Optional<Post> relatedPost = postRepository.findDuplicatePost(
+                    information.getAddress().getCity(),
+                    information.getAddress().getStreet(),
+                    information.getAddress().getZipcode(),
+                    information.getStartDate(),
+                    information.getEndDate()
+            );
+
+            // 연결된 Post를 soft delete (더티 체킹으로 자동 저장됨)
+            relatedPost.ifPresent(Post::updateDeleteAt);
+        }
+
+        return InformationDetailDto.fromEntity(information);
     }
 
     /**

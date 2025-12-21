@@ -92,5 +92,21 @@ public class InformationAdminController {
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 거절되었습니다.", information);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
+
+    // 관리자가 팝업 제보를 삭제
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<CommonResDto> deleteInformation(@PathVariable Long id) {
+        adminInformationService.deleteInformation(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "제보가 삭제되었습니다.", id);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    // 관리자가 승인을 취소
+    @PostMapping("/cancel-approval/{id}")
+    public ResponseEntity<CommonResDto> cancelApproval(@PathVariable Long id) {
+        InformationDetailDto information = informationConvertService.cancelApproval(id);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "승인이 취소되었습니다.", information);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
 }
 

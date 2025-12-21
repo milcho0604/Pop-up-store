@@ -115,6 +115,11 @@ public class Information extends BaseTimeEntity {
         this.status = InformationStatus.REJECTED;
     }
 
+    // 상태 변경 메서드 : PENDING으로 변경 (승인 취소용)
+    public void resetToPending() {
+        this.status = InformationStatus.PENDING;
+    }
+
     // 이미지 업데이트 메서드
     public void updateImage(String postImgUrl) {
         this.postImgUrl = postImgUrl;

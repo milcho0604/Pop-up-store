@@ -97,11 +97,26 @@ public class AdminInformationService {
             throw new IllegalArgumentException("이미 승인된 제보는 거절할 수 없습니다.");
         }
 
-        // 제보 상태를 REJECTED로 변경
+        // 제보 상태를 REJECTED로 변경 (더티 체킹으로 자동 저장됨)
         information.reject();
-        Information savedInformation = informationRepository.save(information);
 
-        return InformationDetailDto.fromEntity(savedInformation);
+        return InformationDetailDto.fromEntity(information);
+    }
+
+    // 관리자가 제보를 삭제 (soft delete)
+    public void deleteInformation(Long id) {
+        checkAdminRole();
+
+        Information information = informationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 제보입니다."));
+
+        // 승인된 제보는 삭제 불가 (승인 취소 후 삭제해야 함)
+        if (information.getStatus() == InformationStatus.APPROVED) {
+            throw new IllegalArgumentException("승인된 제보는 삭제할 수 없습니다. 먼저 승인을 취소하세요.");
+        }
+
+        // soft delete (더티 체킹으로 자동 저장됨)
+        information.updateDeleteAt();
     }
 }
 
