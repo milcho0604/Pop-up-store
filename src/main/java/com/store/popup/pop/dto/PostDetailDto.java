@@ -51,6 +51,9 @@ public class PostDetailDto {
     // 태그 목록
     private List<TagDto> tags;
 
+    // 상세 영업 정보
+    private PostDetailResDto businessInfo;
+
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
         return PostDetailDto.builder()
                 .id(post.getId())
@@ -78,6 +81,8 @@ public class PostDetailDto {
                     post.getTags().stream()
                         .map(TagDto::fromEntity)
                         .collect(Collectors.toList()) : null)
+                .businessInfo(post.getPostDetail() != null ?
+                    PostDetailResDto.fromEntity(post.getPostDetail()) : null)
                 .build();
     }
 

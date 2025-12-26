@@ -105,7 +105,8 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostDetailDto getPostDetail(Long id){
 
-        Post post = postRepository.findById(id)
+        // PostDetail을 함께 fetch join으로 조회
+        Post post = postRepository.findByIdWithPostDetail(id)
                 .orElseThrow(()-> new EntityNotFoundException("존재하지 않는 post입니다."));
 
 

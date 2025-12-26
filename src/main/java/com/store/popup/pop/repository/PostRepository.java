@@ -48,4 +48,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    // PostDetail을 함께 fetch join으로 조회
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.postDetail WHERE p.id = :id AND p.deletedAt IS NULL")
+    Optional<Post> findByIdWithPostDetail(@Param("id") Long id);
 }

@@ -94,6 +94,10 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private List<Tag> tags = new ArrayList<>();
 
+    // 상세 영업 정보 (1:1 양방향)
+    @OneToOne(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private PostDetail postDetail;
+
     public PostListDto listFromEntity(Long viewCount, Long likeCount){
         return PostListDto.builder()
                 .id(this.id)
