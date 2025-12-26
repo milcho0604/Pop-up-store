@@ -1,5 +1,6 @@
 package com.store.popup.pop.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.store.popup.common.domain.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,7 @@ public class PostDetail extends BaseTimeEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false, unique = true)
+    @JsonIgnore  // 순환 참조 방지
     private Post post;
 
     /**

@@ -58,7 +58,7 @@ public class PostDetailService {
     // PostDetail 조회
     @Transactional(readOnly = true)
     public PostDetailResDto getPostDetail(Long postId) {
-        PostDetail postDetail = postDetailRepository.findByPostId(postId)
+        PostDetail postDetail = postDetailRepository.findByPostIdWithPost(postId)
                 .orElseThrow(() -> new EntityNotFoundException("상세 정보가 존재하지 않습니다."));
 
         return PostDetailResDto.fromEntity(postDetail);
@@ -66,14 +66,11 @@ public class PostDetailService {
 
     // PostDetail 수정
     public PostDetailResDto updatePostDetail(Long postId, PostDetailUpdateDto dto) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 포스트입니다."));
+        PostDetail postDetail = postDetailRepository.findByPostIdWithPost(postId)
+                .orElseThrow(() -> new EntityNotFoundException("상세 정보가 존재하지 않습니다."));
 
         // 본인 또는 관리자만 수정 가능
-        checkPostOwnership(post);
-
-        PostDetail postDetail = postDetailRepository.findByPostId(postId)
-                .orElseThrow(() -> new EntityNotFoundException("상세 정보가 존재하지 않습니다."));
+        checkPostOwnership(postDetail.getPost());
 
         // 영업시간이 변경된 경우에만 JSON 변환
         if (dto.getOperatingHours() != null) {
@@ -100,14 +97,11 @@ public class PostDetailService {
 
     // PostDetail 삭제
     public void deletePostDetail(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 포스트입니다."));
+        PostDetail postDetail = postDetailRepository.findByPostIdWithPost(postId)
+                .orElseThrow(() -> new EntityNotFoundException("상세 정보가 존재하지 않습니다."));
 
         // 본인 또는 관리자만 삭제 가능
-        checkPostOwnership(post);
-
-        PostDetail postDetail = postDetailRepository.findByPostId(postId)
-                .orElseThrow(() -> new EntityNotFoundException("상세 정보가 존재하지 않습니다."));
+        checkPostOwnership(postDetail.getPost());
 
         postDetail.updateDeleteAt();
     }
