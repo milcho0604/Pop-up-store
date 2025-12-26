@@ -1,9 +1,8 @@
 package com.store.popup.pop.controller;
 
 import com.store.popup.common.dto.CommonResDto;
-import com.store.popup.pop.dto.PostDetailDto;
-import com.store.popup.pop.dto.PostListDto;
-import com.store.popup.pop.dto.SearchFilterReqDto;
+import com.store.popup.pop.dto.*;
+import com.store.popup.pop.service.PostDetailService;
 import com.store.popup.pop.service.PostMetricsService;
 import com.store.popup.pop.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final PostMetricsService postMetricsService;
+    private final PostDetailService postDetailService;
 
     // 팝업 목록 조회
     @GetMapping("/list")
@@ -104,6 +104,44 @@ public class PostController {
     public ResponseEntity<CommonResDto> searchPostsAll(@RequestBody SearchFilterReqDto searchFilter) {
         List<PostListDto> results = postService.searchAndFilterList(searchFilter);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "검색 결과를 조회합니다.", results);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    // === PostDetail (상세 영업 정보) API ===
+
+    // 상세 영업 정보 생성
+    @PostMapping("/detail/{postId}/business-info")
+    public ResponseEntity<CommonResDto> createPostDetail(
+            @PathVariable Long postId,
+            @RequestBody PostDetailSaveDto dto) {
+        PostDetailResDto postDetail = postDetailService.createPostDetail(postId, dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "상세 영업 정보가 생성되었습니다.", postDetail);
+        return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+    }
+
+    // 상세 영업 정보 조회
+    @GetMapping("/detail/{postId}/business-info")
+    public ResponseEntity<CommonResDto> getPostDetailInfo(@PathVariable Long postId) {
+        PostDetailResDto postDetail = postDetailService.getPostDetail(postId);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "상세 영업 정보를 조회합니다.", postDetail);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    // 상세 영업 정보 수정
+    @PutMapping("/detail/{postId}/business-info")
+    public ResponseEntity<CommonResDto> updatePostDetail(
+            @PathVariable Long postId,
+            @RequestBody PostDetailUpdateDto dto) {
+        PostDetailResDto postDetail = postDetailService.updatePostDetail(postId, dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "상세 영업 정보가 수정되었습니다.", postDetail);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    // 상세 영업 정보 삭제
+    @DeleteMapping("/detail/{postId}/business-info")
+    public ResponseEntity<CommonResDto> deletePostDetail(@PathVariable Long postId) {
+        postDetailService.deletePostDetail(postId);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "상세 영업 정보가 삭제되었습니다.", postId);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
