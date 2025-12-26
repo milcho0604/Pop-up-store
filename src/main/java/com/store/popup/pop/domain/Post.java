@@ -44,6 +44,16 @@ public class Post extends BaseTimeEntity {
     @Builder.Default
     private Long likeCount = 0L;
 
+    // 평균 평점
+    @Column(name = "average_rating")
+    @Builder.Default
+    private Double averageRating = 0.0;
+
+    // 리뷰 개수
+    @Column(name = "review_count")
+    @Builder.Default
+    private Long reviewCount = 0L;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -201,6 +211,12 @@ public class Post extends BaseTimeEntity {
     // 좋아요 수 업데이트 메서드
     public void updateLikeCount(Long likeCount) {
         this.likeCount = (likeCount != null) ? likeCount : 0L; // null이면 0L로 처리
+    }
+
+    // 평균 평점 및 리뷰 개수 업데이트 메서드
+    public void updateRatingInfo(Double averageRating, Long reviewCount) {
+        this.averageRating = (averageRating != null) ? averageRating : 0.0;
+        this.reviewCount = (reviewCount != null) ? reviewCount : 0L;
     }
 
     // Information을 Post로 변환하는 static 메서드
