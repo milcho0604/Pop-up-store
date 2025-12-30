@@ -11,6 +11,7 @@ import com.store.popup.member.domain.Address;
 import com.store.popup.member.domain.Member;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.dto.PostUpdateReqDto;
+import com.store.popup.postimage.domain.PostImage;
 import com.store.popup.report.domain.Report;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -107,6 +108,12 @@ public class Post extends BaseTimeEntity {
     // 상세 영업 정보 (1:1 양방향)
     @OneToOne(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private PostDetail postDetail;
+
+    // 이미지 갤러리 (1:N)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonIgnore
+    private List<PostImage> images = new ArrayList<>();
 
     public PostListDto listFromEntity(Long viewCount, Long likeCount){
         return PostListDto.builder()
