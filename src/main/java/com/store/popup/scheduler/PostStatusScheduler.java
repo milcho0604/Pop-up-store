@@ -22,14 +22,14 @@ public class PostStatusScheduler {
     private final PostRepository postRepository;
 
     /**
-     * 매 시간 정각에 Post 상태 업데이트
+     * 매일 자정(00:00)에 Post 상태 업데이트
      * Cron 표현식: "초 분 시 일 월 요일"
-     * "0 0 * * * *" = 매 시간 0분 0초
+     * "0 0 0 * * *" = 매일 00시 00분 00초
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void updatePostStatus() {
-        log.info("Post 상태 자동 업데이트 시작");
+        log.info("Post 상태 자동 업데이트 시작 (매일 자정 실행)");
 
         List<Post> posts = postRepository.findByDeletedAtIsNull();
         int updatedCount = 0;
