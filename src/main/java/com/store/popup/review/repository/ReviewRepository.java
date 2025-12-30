@@ -51,4 +51,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT AVG(r.photoAvailability) FROM Review r WHERE r.post.id = :postId AND r.deletedAt IS NULL")
     Double calculateAveragePhotoAvailability(@Param("postId") Long postId);
+
+    // 기간별 리뷰 수 (대시보드용)
+    Long countByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+
+    // 기간별 평균 평점 (대시보드용)
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.createdAt BETWEEN :startDate AND :endDate AND r.deletedAt IS NULL")
+    Double calculateAverageRatingByPeriod(@Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
 }

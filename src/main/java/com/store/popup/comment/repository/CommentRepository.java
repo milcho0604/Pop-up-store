@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostId(Long postId);
+
+    // 기간별 댓글 수 (대시보드용)
+    Long countByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }

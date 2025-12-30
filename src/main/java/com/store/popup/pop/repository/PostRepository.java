@@ -52,4 +52,10 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     // PostDetail을 함께 fetch join으로 조회
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.postDetail WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<Post> findByIdWithPostDetail(@Param("id") Long id);
+
+    // 기간별 게시글 수 (대시보드용)
+    Long countByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
+
+    // 기간별 게시글 목록 (대시보드용)
+    List<Post> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 }

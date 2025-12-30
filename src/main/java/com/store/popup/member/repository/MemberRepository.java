@@ -62,4 +62,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 탈퇴 회원 중 인증 여부 필터링
     Page<Member> findByIsVerifiedAndDeletedAtIsNotNull(boolean isVerified, Pageable pageable);
 
+    // 기간별 신규 가입자 수 (대시보드용)
+    Long countByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+
 }
