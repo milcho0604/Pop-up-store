@@ -89,6 +89,11 @@ public class Post extends BaseTimeEntity {
     private@Builder.Default
     Long viewCount = 0L;
 
+    // 공유 횟수
+    @Column(name = "share_count")
+    @Builder.Default
+    private Long shareCount = 0L;
+
     // 신고 목록
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @Builder.Default
@@ -224,6 +229,11 @@ public class Post extends BaseTimeEntity {
     public void updateRatingInfo(Double averageRating, Long reviewCount) {
         this.averageRating = (averageRating != null) ? averageRating : 0.0;
         this.reviewCount = (reviewCount != null) ? reviewCount : 0L;
+    }
+
+    // 공유 횟수 증가
+    public void incrementShareCount() {
+        this.shareCount++;
     }
 
     // Information을 Post로 변환하는 static 메서드
