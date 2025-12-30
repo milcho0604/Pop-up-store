@@ -1,6 +1,7 @@
 package com.store.popup.favorite.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
+import com.store.popup.favoritefolder.domain.FavoriteFolder;
 import com.store.popup.member.domain.Member;
 import com.store.popup.pop.domain.Post;
 import jakarta.persistence.*;
@@ -30,4 +31,15 @@ public class Favorite extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    private FavoriteFolder folder;  // null이면 기본 폴더
+
+    /**
+     * 폴더 변경
+     */
+    public void moveToFolder(FavoriteFolder folder) {
+        this.folder = folder;
+    }
 }

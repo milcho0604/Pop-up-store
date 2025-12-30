@@ -1,6 +1,7 @@
 package com.store.popup.favorite.repository;
 
 import com.store.popup.favorite.domain.Favorite;
+import com.store.popup.favoritefolder.domain.FavoriteFolder;
 import com.store.popup.member.domain.Member;
 import com.store.popup.pop.domain.Post;
 import org.springframework.data.domain.Page;
@@ -34,4 +35,13 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     // Post의 찜 개수
     @Query("SELECT COUNT(f) FROM Favorite f WHERE f.post.id = :postId AND f.deletedAt IS NULL")
     long countByPostId(@Param("postId") Long postId);
+
+    // 폴더별 찜 조회
+    List<Favorite> findByFolderAndDeletedAtIsNull(FavoriteFolder folder);
+
+    // 폴더 내 찜 조회 (페이징)
+    Page<Favorite> findByMemberAndFolderAndDeletedAtIsNullOrderByCreatedAtDesc(Member member, FavoriteFolder folder, Pageable pageable);
+
+    // 기본 폴더(folder=null) 찜 조회
+    List<Favorite> findByMemberAndFolderIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(Member member);
 }
