@@ -1,5 +1,6 @@
 package com.store.popup.favorite.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.favoritefolder.domain.FavoriteFolder;
 import com.store.popup.member.domain.Member;
@@ -34,6 +35,7 @@ public class Favorite extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
+    @JsonIgnore
     private FavoriteFolder folder;  // null이면 기본 폴더
 
     /**

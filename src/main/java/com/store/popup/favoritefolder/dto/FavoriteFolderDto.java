@@ -23,17 +23,22 @@ public class FavoriteFolderDto {
     private Long favoriteCount;  // 폴더 내 찜 개수
     private LocalDateTime createdAt;
 
+    public static FavoriteFolderDto fromEntity(FavoriteFolder folder, Long favoriteCount) {
+        return FavoriteFolderDto.builder()
+                .folderId(folder.getId())
+                .name(folder.getName())
+                .description(folder.getDescription())
+                .favoriteCount(favoriteCount != null ? favoriteCount : 0L)
+                .createdAt(folder.getCreatedAt())
+                .build();
+    }
+
+    // 단일 폴더 조회용 (favoriteCount 직접 계산)
     public static FavoriteFolderDto fromEntity(FavoriteFolder folder) {
         long favoriteCount = folder.getFavorites().stream()
                 .filter(fav -> fav.getDeletedAt() == null)
                 .count();
 
-        return FavoriteFolderDto.builder()
-                .folderId(folder.getId())
-                .name(folder.getName())
-                .description(folder.getDescription())
-                .favoriteCount(favoriteCount)
-                .createdAt(folder.getCreatedAt())
-                .build();
+        return fromEntity(folder, favoriteCount);
     }
 }

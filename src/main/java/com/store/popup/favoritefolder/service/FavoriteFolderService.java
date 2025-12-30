@@ -50,14 +50,26 @@ public class FavoriteFolderService {
     }
 
     /**
-     * 내 폴더 목록 조회
+     * 내 폴더 목록 조회 (N+1 방지)
      */
     @Transactional(readOnly = true)
     public List<FavoriteFolderDto> getMyFolders() {
         Member member = getCurrentMember();
         List<FavoriteFolder> folders = favoriteFolderRepository.findByMemberAndDeletedAtIsNullOrderByCreatedAtAsc(member);
+
+        // 폴더별 찜 개수를 한 번의 쿼리로 조회
+        List<Object[]> favoriteCounts = favoriteFolderRepository.countFavoritesByMember(member);
+
+        // Map으로 변환 (folderId -> count)
+        java.util.Map<Long, Long> countMap = favoriteCounts.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Long) arr[1]
+                ));
+
+        // DTO 변환
         return folders.stream()
-                .map(FavoriteFolderDto::fromEntity)
+                .map(folder -> FavoriteFolderDto.fromEntity(folder, countMap.getOrDefault(folder.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -90,9 +102,8 @@ public class FavoriteFolderService {
         FavoriteFolder folder = favoriteFolderRepository.findByIdAndMemberAndDeletedAtIsNull(folderId, member)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 폴더입니다."));
 
-        // 폴더 내 찜을 기본 폴더로 이동
-        List<Favorite> favoritesInFolder = favoriteRepository.findByFolderAndDeletedAtIsNull(folder);
-        favoritesInFolder.forEach(fav -> fav.moveToFolder(null));
+        // 폴더 내 찜을 기본 폴더로 일괄 이동 (벌크 업데이트)
+        favoriteRepository.moveAllToDefaultFolder(folder);
 
         // soft delete
         folder.updateDeleteAt();

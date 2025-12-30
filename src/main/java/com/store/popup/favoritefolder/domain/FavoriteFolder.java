@@ -1,5 +1,6 @@
 package com.store.popup.favoritefolder.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.favorite.domain.Favorite;
 import com.store.popup.member.domain.Member;
@@ -40,6 +41,7 @@ public class FavoriteFolder extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Favorite> favorites = new ArrayList<>();
 
     /**

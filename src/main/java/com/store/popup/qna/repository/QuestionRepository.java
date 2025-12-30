@@ -21,6 +21,27 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     // Post의 모든 질문 조회 (리스트)
     List<Question> findByPostAndDeletedAtIsNullOrderByCreatedAtDesc(Post post);
 
+    // Post의 모든 질문 조회 (페이징, N+1 방지)
+    @Query(value = "SELECT DISTINCT q FROM Question q " +
+            "JOIN FETCH q.member " +
+            "JOIN FETCH q.post " +
+            "LEFT JOIN FETCH q.answer a " +
+            "LEFT JOIN FETCH a.member " +
+            "WHERE q.post = :post AND q.deletedAt IS NULL " +
+            "ORDER BY q.createdAt DESC",
+            countQuery = "SELECT COUNT(q) FROM Question q WHERE q.post = :post AND q.deletedAt IS NULL")
+    Page<Question> findByPostWithFetch(@Param("post") Post post, Pageable pageable);
+
+    // Post의 모든 질문 조회 (리스트, N+1 방지)
+    @Query("SELECT DISTINCT q FROM Question q " +
+            "JOIN FETCH q.member " +
+            "JOIN FETCH q.post " +
+            "LEFT JOIN FETCH q.answer a " +
+            "LEFT JOIN FETCH a.member " +
+            "WHERE q.post = :post AND q.deletedAt IS NULL " +
+            "ORDER BY q.createdAt DESC")
+    List<Question> findByPostWithFetch(@Param("post") Post post);
+
     // 질문 조회 (답변 포함)
     @Query("SELECT q FROM Question q LEFT JOIN FETCH q.answer WHERE q.id = :id AND q.deletedAt IS NULL")
     Optional<Question> findByIdWithAnswer(@Param("id") Long id);

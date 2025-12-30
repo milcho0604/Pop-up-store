@@ -58,7 +58,7 @@ public class HistoryService {
                         .build();
                 viewHistoryRepository.save(viewHistory);
             }
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
             // 익명 사용자는 조회 기록을 남기지 않음
             log.debug("조회 기록 저장 실패 (익명 사용자일 수 있음): {}", e.getMessage());
         }
@@ -97,8 +97,7 @@ public class HistoryService {
      */
     public void deleteAllViewHistory() {
         Member member = getCurrentMember();
-        List<ViewHistory> histories = viewHistoryRepository.findByMemberOrderByUpdatedAtDesc(member);
-        histories.forEach(ViewHistory::updateDeleteAt);
+        viewHistoryRepository.softDeleteAllByMember(member);
     }
 
     // ========== 검색 기록 ==========
@@ -114,7 +113,7 @@ public class HistoryService {
                     .keyword(keyword)
                     .build();
             searchHistoryRepository.save(searchHistory);
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
             // 익명 사용자는 검색 기록을 남기지 않음
             log.debug("검색 기록 저장 실패 (익명 사용자일 수 있음): {}", e.getMessage());
         }
@@ -153,8 +152,7 @@ public class HistoryService {
      */
     public void deleteAllSearchHistory() {
         Member member = getCurrentMember();
-        List<SearchHistory> histories = searchHistoryRepository.findByMemberAndDeletedAtIsNullOrderByCreatedAtDesc(member);
-        histories.forEach(SearchHistory::updateDeleteAt);
+        searchHistoryRepository.softDeleteAllByMember(member);
     }
 
     // ========== Helper Methods ==========

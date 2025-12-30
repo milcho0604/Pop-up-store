@@ -62,7 +62,7 @@ public class QnAService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
-        Page<Question> questions = questionRepository.findByPostAndDeletedAtIsNullOrderByCreatedAtDesc(post, pageable);
+        Page<Question> questions = questionRepository.findByPostWithFetch(post, pageable);
         return questions.map(QuestionDto::fromEntity);
     }
 
@@ -74,7 +74,7 @@ public class QnAService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
-        List<Question> questions = questionRepository.findByPostAndDeletedAtIsNullOrderByCreatedAtDesc(post);
+        List<Question> questions = questionRepository.findByPostWithFetch(post);
         return questions.stream()
                 .map(QuestionDto::fromEntity)
                 .collect(Collectors.toList());

@@ -7,6 +7,7 @@ import com.store.popup.pop.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -44,4 +45,9 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     // 기본 폴더(folder=null) 찜 조회
     List<Favorite> findByMemberAndFolderIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(Member member);
+
+    // 폴더 내 모든 찜을 기본 폴더로 일괄 이동 (벌크 업데이트)
+    @Modifying
+    @Query("UPDATE Favorite f SET f.folder = NULL WHERE f.folder = :folder AND f.deletedAt IS NULL")
+    void moveAllToDefaultFolder(@Param("folder") FavoriteFolder folder);
 }

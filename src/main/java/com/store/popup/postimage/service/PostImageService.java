@@ -92,7 +92,7 @@ public class PostImageService {
      */
     public void deleteImage(Long imageId) {
         Member member = getCurrentMember();
-        PostImage postImage = postImageRepository.findById(imageId)
+        PostImage postImage = postImageRepository.findByIdWithPostAndMember(imageId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 이미지입니다."));
 
         // 작성자 확인
