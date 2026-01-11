@@ -76,16 +76,31 @@ public class PostService {
         return post;
     }
 
-    // 게시글 리스트
+    // 팝업 스토어 리스트
     @Transactional(readOnly = true)
     public List<PostListDto> postList(){
         List<Post> posts = postRepository.findByDeletedAtIsNull();
-        // Post -> PostListDto로 변환
-        return posts.stream().map(post -> {
-            Long viewCount = postMetricsService.getPostViews(post.getId());   // Redis에서 조회수 가져오기
-            Long likeCount = postMetricsService.getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
-            return post.listFromEntity(viewCount, likeCount);   // 조회수와 좋아요 수를 포함한 DTO로 변환
-        }).collect(Collectors.toList());   // 리스트로 변환
+        return posts.stream()
+                .map(this::convertToPostListDtoWithMetrics) // redis에서 조회수 및 좋아요 가져오기
+                .collect(Collectors.toList()); // 리스트로 변환
+    }
+
+    // 도시 기준으로 조회한 팝업 리스트
+    @Transactional(readOnly = true)
+    public List<PostListDto> findPopupsByCity(String city){
+        List<Post> posts = postRepository.findByDeletedAtIsNullAndAddress_City(city);
+        return posts.stream()
+                .map(this::convertToPostListDtoWithMetrics) // redis에서 조회수 및 좋아요 가져오기
+                .collect(Collectors.toList()); // 리스트로 변환
+    }
+
+    // 동 기준으로 조회한 팝업 리스트
+    @Transactional(readOnly = true)
+    public List<PostListDto> findPopupsByDong(String dong){
+        List<Post> posts = postRepository.findByDeletedAtIsNullAndAddress_Dong(dong);
+        return posts.stream()
+                .map(this::convertToPostListDtoWithMetrics)// redis에서 조회수 및 좋아요 가져오기
+                .collect(Collectors.toList()); // 리스트로 변환
     }
 
     // 내가 작성한 팝업 게시글 목록
@@ -94,11 +109,7 @@ public class PostService {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = findMemberByEmail(memberEmail);
         Page<Post> posts = postRepository.findByMemberAndDeletedAtIsNull(member, pageable);
-        return posts.map(post -> {
-            Long viewCount = postMetricsService.getPostViews(post.getId());   // Redis에서 조회수 가져오기
-            Long likeCount = postMetricsService.getPostLikesCount(post.getId());   // Redis에서 좋아요 수 가져오기
-            return post.listFromEntity(viewCount, likeCount);   // 조회수와 좋아요 수를 포함한 DTO로 변환
-        });
+        return posts.map(this::convertToPostListDtoWithMetrics); // redis에서 조회수 및 좋아요 가져오기
     }
 
     // 팝업 게시글 상세
@@ -142,6 +153,7 @@ public class PostService {
         post.update(dto);
     }
 
+    // 팝업 삭제
     public void deletePost(Long id){
         Post post = postRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 post입니다."));
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -167,11 +179,7 @@ public class PostService {
         Page<Post> posts = postRepository.findAll(spec, pageableWithSort);
 
         // Post -> PostListDto 변환
-        return posts.map(post -> {
-            Long viewCount = postMetricsService.getPostViews(post.getId());
-            Long likeCount = postMetricsService.getPostLikesCount(post.getId());
-            return post.listFromEntity(viewCount, likeCount);
-        });
+        return posts.map(this::convertToPostListDtoWithMetrics);
     }
 
     // 검색 및 필터링 (List 반환, 페이징 없음)
@@ -187,11 +195,9 @@ public class PostService {
         List<Post> posts = postRepository.findAll(spec, sort);
 
         // Post -> PostListDto 변환
-        List<PostListDto> postListDtos = posts.stream().map(post -> {
-            Long viewCount = postMetricsService.getPostViews(post.getId());
-            Long likeCount = postMetricsService.getPostLikesCount(post.getId());
-            return post.listFromEntity(viewCount, likeCount);
-        }).collect(Collectors.toList());
+        List<PostListDto> postListDtos = posts.stream()
+                .map(this::convertToPostListDtoWithMetrics)
+                .collect(Collectors.toList());
 
         // 인기순, 조회수순, 마감임박순은 Redis 데이터 기반 정렬이 필요하므로 추가 정렬
         if (searchFilter.getSortBy() != null) {
@@ -243,6 +249,13 @@ public class PostService {
     private Member findMemberByEmail(String email){
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+    }
+
+    // Post 엔티티에 Redis 기반 조회수/좋아요 메트릭을 결합하여 목록용 DTO로 변환
+    private PostListDto convertToPostListDtoWithMetrics(Post post) {
+        Long viewCount = postMetricsService.getPostViews(post.getId());
+        Long likeCount = postMetricsService.getPostLikesCount(post.getId());
+        return post.listFromEntity(viewCount, likeCount);
     }
 }
 

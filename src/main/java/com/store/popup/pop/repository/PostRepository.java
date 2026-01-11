@@ -16,7 +16,15 @@ import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificationExecutor<Post> {
+    // 팝업 전체 리스트
     List<Post> findByDeletedAtIsNull();
+
+    // 팝업 동 기준으로 조회한 리스트
+    List<Post> findByDeletedAtIsNullAndAddress_City(String Dong);
+
+    // 팝업 동 기준으로 조회한 리스트
+    List<Post> findByDeletedAtIsNullAndAddress_Dong(String Dong);
+
     // 사용자의 이메일을 기준으로 삭제되지 않은 게시글 목록 조회
     Page<Post> findByMemberAndDeletedAtIsNull(Member member, Pageable pageable);
 

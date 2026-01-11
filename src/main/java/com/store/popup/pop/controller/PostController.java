@@ -31,7 +31,20 @@ public class PostController {
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 목록을 조회합니다.", postListDtos);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
-
+    // 팝업 목록 조회
+    @GetMapping("/list/city")
+    public ResponseEntity<?> findPopupsByCity(@RequestParam String city){
+        List<PostListDto> postListDtos = postService.findPopupsByCity(city);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 목록을 조회합니다.", postListDtos);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+    // 팝업 목록 조회
+    @GetMapping("/list/dong")
+    public ResponseEntity<?> findPopupsByDong(@RequestParam String dong){
+        List<PostListDto> postListDtos = postService.findPopupsByDong(dong);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 목록을 조회합니다.", postListDtos);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
     // 조회수 많은 팝업 목록 조회
     @GetMapping("/good/list")
     public ResponseEntity<?> famousPostList(){
