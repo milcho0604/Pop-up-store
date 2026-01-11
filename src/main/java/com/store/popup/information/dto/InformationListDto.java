@@ -26,9 +26,10 @@ public class InformationListDto {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
-    
+
     // 상세 주소
     private String detailAddress;
 

@@ -28,9 +28,10 @@ public class InformationDetailDto {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
-    
+
     // 상세 주소
     private String detailAddress;
     
@@ -53,6 +54,7 @@ public class InformationDetailDto {
                 .startDate(information.getStartDate())
                 .endDate(information.getEndDate())
                 .city(information.getAddress() != null ? information.getAddress().getCity() : null)
+                .dong(information.getAddress() != null ? information.getAddress().getDong() : null)
                 .street(information.getAddress() != null ? information.getAddress().getStreet() : null)
                 .zipcode(information.getAddress() != null ? information.getAddress().getZipcode() : null)
                 .detailAddress(information.getAddress() != null ? information.getAddress().getDetailAddress() : null)

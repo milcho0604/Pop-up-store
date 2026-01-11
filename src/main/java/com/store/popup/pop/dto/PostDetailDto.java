@@ -38,6 +38,7 @@ public class PostDetailDto {
     
     // 팝업 스토어 주소
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
 
@@ -72,6 +73,7 @@ public class PostDetailDto {
                 .startDate(post.getStartDate())
                 .endDate(post.getEndDate())
                 .city(post.getAddress() != null ? post.getAddress().getCity() : null)
+                .dong(post.getAddress() != null ? post.getAddress().getDong() : null)
                 .street(post.getAddress() != null ? post.getAddress().getStreet() : null)
                 .zipcode(post.getAddress() != null ? post.getAddress().getZipcode() : null)
                 .detailAddress(post.getAddress() != null ? post.getAddress().getDetailAddress() : null)

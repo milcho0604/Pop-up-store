@@ -152,14 +152,16 @@ public class Information extends BaseTimeEntity {
             this.endDate = dto.getEndDate();
         }
         // 주소 병합 (기존 address 유지 + 들어온 값만 반영)
-        if (dto.getCity() != null || dto.getStreet() != null || dto.getZipcode() != null || dto.getDetailAddress() != null) {
+        if (dto.getCity() != null || dto.getDong() != null || dto.getStreet() != null || dto.getZipcode() != null || dto.getDetailAddress() != null) {
             String currentCity = this.address != null ? this.address.getCity() : null;
+            String currentDong = this.address != null ? this.address.getDong() : null;
             String currentStreet = this.address != null ? this.address.getStreet() : null;
             String currentZipcode = this.address != null ? this.address.getZipcode() : null;
             String currentDetailAddress = this.address != null ? this.address.getDetailAddress() : null;
 
             this.address = Address.builder()
                     .city(dto.getCity() != null ? dto.getCity() : currentCity)
+                    .dong(dto.getDong() != null ? dto.getDong() : currentDong)
                     .street(dto.getStreet() != null ? dto.getStreet() : currentStreet)
                     .zipcode(dto.getZipcode() != null ? dto.getZipcode() : currentZipcode)
                     .detailAddress(dto.getDetailAddress() != null ? dto.getDetailAddress() : currentDetailAddress)

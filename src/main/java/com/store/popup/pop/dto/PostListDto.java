@@ -32,6 +32,7 @@ public class PostListDto {
     
     // 팝업 스토어 주소
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
 

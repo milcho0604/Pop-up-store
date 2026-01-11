@@ -78,19 +78,22 @@ public class MemberProfileService {
     // 2) 주소 Patch: 일부 필드만 들어와도 기존 값 보존
     private void applyAddressPatch(Member member, MemberProfileUpdateReqDto dto) {
         boolean hasCity = StringUtils.hasText(dto.getCity());
+        boolean hasDong = StringUtils.hasText(dto.getDong());
         boolean hasStreet = StringUtils.hasText(dto.getStreet());
         boolean hasZip = StringUtils.hasText(dto.getZipcode());
         boolean hasDetailAddress = StringUtils.hasText(dto.getDetailAddress());
 
-        if (!hasCity && !hasStreet && !hasZip && !hasDetailAddress) return;
+        if (!hasCity && !hasDong && !hasStreet && !hasZip && !hasDetailAddress) return;
 
         String currentCity = member.getAddress() != null ? member.getAddress().getCity() : null;
+        String currentDong = member.getAddress() != null ? member.getAddress().getDong() : null;
         String currentStreet = member.getAddress() != null ? member.getAddress().getStreet() : null;
         String currentZipcode = member.getAddress() != null ? member.getAddress().getZipcode() : null;
         String currentDetailAddress = member.getAddress() != null ? member.getAddress().getDetailAddress() : null;
 
         Address newAddress = Address.builder()
                 .city(hasCity ? dto.getCity() : currentCity)
+                .dong(hasDong ? dto.getDong() : currentDong)
                 .street(hasStreet ? dto.getStreet() : currentStreet)
                 .zipcode(hasZip ? dto.getZipcode() : currentZipcode)
                 .detailAddress(hasDetailAddress ? dto.getDetailAddress() : currentDetailAddress)

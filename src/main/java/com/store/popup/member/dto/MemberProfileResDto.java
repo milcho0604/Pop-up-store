@@ -22,6 +22,7 @@ public class MemberProfileResDto {
     private String phoneNumber;
     private String profileImgUrl;
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
     private String detailAddress;
@@ -40,6 +41,7 @@ public class MemberProfileResDto {
                 .phoneNumber(member.getPhoneNumber())
                 .profileImgUrl(member.getProfileImgUrl())
                 .city(addr != null ? addr.getCity() : null)
+                .dong(addr != null ? addr.getDong() : null)
                 .street(addr != null ? addr.getStreet() : null)
                 .zipcode(addr != null ? addr.getZipcode() : null)
                 .detailAddress(addr != null ? addr.getDetailAddress() : null)

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class Address {
     private String city;
+    private String dong;  // 동 (구보다 작은 행정구역)
     private String street;
     private String zipcode;
     private String detailAddress;

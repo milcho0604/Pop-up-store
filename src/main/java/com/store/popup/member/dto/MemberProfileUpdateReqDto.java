@@ -15,6 +15,7 @@ public class MemberProfileUpdateReqDto {
     private String nickname;
     private String phoneNumber;
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
     private String detailAddress;

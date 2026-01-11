@@ -42,9 +42,10 @@ public class InformationSaveDto {
 
     // 팝업 스토어 주소
     private String city;
+    private String dong;
     private String street;
     private String zipcode;
-    
+
     // 상세 주소
     private String detailAddress;
 
@@ -56,9 +57,10 @@ public class InformationSaveDto {
 
     public Information toEntity(String postImgUrl, Member reporter, List<Tag> tags) {
         Address address = null;
-        if (city != null || street != null || zipcode != null || detailAddress != null) {
+        if (city != null || dong != null || street != null || zipcode != null || detailAddress != null) {
             address = Address.builder()
                     .city(city)
+                    .dong(dong)
                     .street(street)
                     .zipcode(zipcode)
                     .detailAddress(detailAddress)
