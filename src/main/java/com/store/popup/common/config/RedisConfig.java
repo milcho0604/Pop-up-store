@@ -1,5 +1,8 @@
 package com.store.popup.common.config;
 
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
@@ -66,5 +69,23 @@ public class RedisConfig {
         t.setKeySerializer(new StringRedisSerializer());
         t.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return t;
+    }
+
+    /**
+     * Redisson 클라이언트 (분산 락 전용)
+     * DB 0번 사용 (기본 Redis와 동일)
+     */
+    @Bean
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        config.useSingleServer()
+                .setAddress("redis://" + host + ":" + port)
+                .setDatabase(0)  // 분산 락은 DB 0번 사용
+                .setConnectionPoolSize(50)
+                .setConnectionMinimumIdleSize(10)
+                .setTimeout(3000)
+                .setRetryAttempts(3)
+                .setRetryInterval(1500);
+        return Redisson.create(config);
     }
 }

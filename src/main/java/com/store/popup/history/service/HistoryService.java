@@ -1,5 +1,6 @@
 package com.store.popup.history.service;
 
+import com.store.popup.common.service.DistributedLockService;
 import com.store.popup.history.domain.SearchHistory;
 import com.store.popup.history.domain.ViewHistory;
 import com.store.popup.history.dto.SearchHistoryDto;
@@ -32,11 +33,18 @@ public class HistoryService {
     private final SearchHistoryRepository searchHistoryRepository;
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final DistributedLockService distributedLockService;
 
     // ========== 조회 히스토리 ==========
 
     /**
-     * Post 조회 기록 추가/갱신
+     * Post 조회 기록 추가/갱신 (분산 락 + UPSERT)
+     *
+     * 동시성 제어 전략:
+     * 1. Redis 분산 락: 여러 서버 인스턴스 간 동시 접근 방지
+     * 2. Database UPSERT: DB 레벨에서 원자적 연산 보장
+     *
+     * 이중 안전장치로 Race Condition을 완벽히 차단합니다.
      */
     public void recordViewHistory(Long postId) {
         try {
@@ -44,23 +52,25 @@ public class HistoryService {
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
-            // 이미 조회한 적이 있으면 updatedAt만 갱신
-            ViewHistory viewHistory = viewHistoryRepository.findByMemberAndPostAndDeletedAtIsNull(member, post)
-                    .orElse(null);
+            // 분산 락 키: "view-history:member:{memberId}:post:{postId}"
+            String lockKey = String.format("view-history:member:%d:post:%d", member.getId(), postId);
 
-            if (viewHistory != null) {
-                viewHistory.refreshViewTime();
-            } else {
-                // 새로운 조회 기록 생성
-                viewHistory = ViewHistory.builder()
-                        .member(member)
-                        .post(post)
-                        .build();
-                viewHistoryRepository.save(viewHistory);
-            }
+            // 분산 락을 획득하여 동시성 제어
+            distributedLockService.executeWithLock(lockKey, () -> {
+                // UPSERT 쿼리로 조회 기록 생성 또는 갱신
+                // - 새로운 조회: INSERT
+                // - 기존 조회: updated_at만 갱신
+                viewHistoryRepository.upsertViewHistory(member.getId(), postId);
+            }, 2000L, 3000L);  // 대기 2초, 자동 해제 3초
+
+            log.debug("조회 기록 저장/갱신 성공: member={}, post={}", member.getId(), postId);
+
         } catch (EntityNotFoundException e) {
             // 익명 사용자는 조회 기록을 남기지 않음
             log.debug("조회 기록 저장 실패 (익명 사용자일 수 있음): {}", e.getMessage());
+        } catch (IllegalStateException e) {
+            // 분산 락 획득 실패 - 치명적이지 않으므로 로그만 남김
+            log.warn("조회 기록 저장 시 락 획득 실패: postId={}, message={}", postId, e.getMessage());
         }
     }
 

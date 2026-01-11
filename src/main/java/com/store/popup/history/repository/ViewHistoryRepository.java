@@ -31,4 +31,24 @@ public interface ViewHistoryRepository extends JpaRepository<ViewHistory, Long> 
     @Modifying
     @Query("UPDATE ViewHistory vh SET vh.deletedAt = CURRENT_TIMESTAMP WHERE vh.member = :member AND vh.deletedAt IS NULL")
     void softDeleteAllByMember(@Param("member") Member member);
+
+    /**
+     * 조회 기록 생성 또는 갱신 (UPSERT)
+     *
+     * MariaDB의 INSERT ... ON DUPLICATE KEY UPDATE 구문을 사용하여
+     * 동시성 문제를 데이터베이스 레벨에서 해결합니다.
+     *
+     * - 새로운 조회: INSERT 실행
+     * - 기존 조회: updated_at만 갱신
+     * - 원자적 연산으로 Race Condition 방지
+     *
+     * @param memberId 회원 ID
+     * @param postId 게시글 ID
+     */
+    @Modifying
+    @Query(value = "INSERT INTO view_history (member_id, post_id, created_at, updated_at, deleted_at) " +
+                   "VALUES (:memberId, :postId, NOW(), NOW(), NULL) " +
+                   "ON DUPLICATE KEY UPDATE updated_at = NOW()",
+           nativeQuery = true)
+    void upsertViewHistory(@Param("memberId") Long memberId, @Param("postId") Long postId);
 }
