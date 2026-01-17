@@ -5,6 +5,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+/node_modules
+/milcho-612c1-firebase-adminsdk-fbsvc-422bc46d63.json
+**/milcho-612c1-firebase-adminsdk-fbsvc-422bc46d63.json
 # 모든 application.yml 무시
 **/application-local*.yml
 src/main/resources/application-local.yml

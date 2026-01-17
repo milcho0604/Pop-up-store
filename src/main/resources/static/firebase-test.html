@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase FCM 토큰 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #fcmToken {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .info {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Firebase FCM 토큰 발급 테스트</h1>
+
+        <div class="section">
+            <h3>1단계: FCM 토큰 발급</h3>
+            <p class="info">브라우저에서 알림 권한을 허용하고 Firebase로부터 FCM 토큰을 받습니다.</p>
+            <button id="requestPermission">알림 권한 요청 및 토큰 발급</button>
+            <div id="tokenResult" style="margin-top: 15px;"></div>
+            <textarea id="fcmToken" rows="4" readonly placeholder="여기에 FCM 토큰이 표시됩니다..."></textarea>
+        </div>
+
+        <div class="section">
+            <h3>2단계: 백엔드에 토큰 저장</h3>
+            <p class="info">발급받은 FCM 토큰을 백엔드 서버에 저장합니다. (JWT 인증 필요)</p>
+
+            <div class="input-group">
+                <label>JWT 토큰 (로그인 후 받은 토큰):</label>
+                <input type="text" id="jwtToken" placeholder="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+
+            <button id="saveToken" disabled>백엔드에 토큰 저장</button>
+            <div id="saveResult" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="section">
+            <h3>📋 테스트 순서</h3>
+            <ol>
+                <li>먼저 백엔드 서버를 실행하세요 (<code>./gradlew bootRun</code>)</li>
+                <li>"알림 권한 요청 및 토큰 발급" 버튼을 클릭하세요</li>
+                <li>브라우저 알림 권한 허용 팝업이 뜨면 "허용"을 클릭하세요</li>
+                <li>FCM 토큰이 화면에 표시됩니다</li>
+                <li>JWT 토큰 입력란에 로그인 토큰을 입력하세요</li>
+                <li>"백엔드에 토큰 저장" 버튼을 클릭하세요</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+
+        let app = null;
+        let messaging = null;
+        let currentFcmToken = null;
+        let firebaseConfig = null;
+
+        // 백엔드에서 Firebase 설정 가져오기
+        async function loadFirebaseConfig() {
+            try {
+                const response = await fetch('http://localhost:8080/api/firebase/config');
+                if (!response.ok) {
+                    throw new Error('Firebase 설정을 가져올 수 없습니다.');
+                }
+                firebaseConfig = await response.json();
+                console.log('✅ Firebase 설정 로드 완료');
+
+                // Firebase 초기화
+                app = initializeApp(firebaseConfig);
+                console.log('✅ Firebase 앱 초기화 완료');
+
+                return true;
+            } catch (error) {
+                console.error('❌ Firebase 설정 로드 실패:', error);
+                document.getElementById('tokenResult').innerHTML = '<p class="error">❌ Firebase 설정을 불러올 수 없습니다. 서버를 확인하세요.</p>';
+                document.getElementById('tokenResult').style.display = 'block';
+                return false;
+            }
+        }
+
+        // Service Worker 등록 및 Firebase Messaging 초기화
+        async function initializeFirebaseMessaging() {
+            try {
+                // Firebase 설정이 없으면 먼저 로드
+                if (!app) {
+                    const configLoaded = await loadFirebaseConfig();
+                    if (!configLoaded) {
+                        return false;
+                    }
+                }
+
+                // Service Worker 등록
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('✅ Service Worker 등록 성공:', registration);
+
+                // Service Worker가 활성화될 때까지 대기
+                await navigator.serviceWorker.ready;
+                console.log('✅ Service Worker 활성화 완료');
+
+                // Firebase Messaging 초기화
+                messaging = getMessaging(app);
+                console.log('✅ Firebase Messaging 초기화 완료');
+
+                // 포그라운드 메시지 수신 리스너 등록
+                onMessage(messaging, (payload) => {
+                    console.log('메시지 수신:', payload);
+                    alert(`알림: ${payload.notification.title}\n${payload.notification.body}`);
+                });
+
+                return true;
+            } catch (error) {
+                console.error('❌ Service Worker 등록 실패:', error);
+                return false;
+            }
+        }
+
+        // 페이지 로드 시 Firebase 설정 로드 및 Service Worker 등록
+        (async () => {
+            await loadFirebaseConfig();
+            await initializeFirebaseMessaging();
+        })();
+
+        // 알림 권한 요청 및 토큰 발급
+        document.getElementById('requestPermission').addEventListener('click', async () => {
+            try {
+                // Service Worker가 초기화되지 않았으면 먼저 초기화
+                if (!messaging) {
+                    document.getElementById('tokenResult').innerHTML = '<p class="info">Service Worker를 등록하는 중...</p>';
+                    const initialized = await initializeFirebaseMessaging();
+                    if (!initialized) {
+                        document.getElementById('tokenResult').innerHTML = '<p class="error">❌ Service Worker 등록에 실패했습니다.</p>';
+                        return;
+                    }
+                }
+
+                const permission = await Notification.requestPermission();
+
+                if (permission === 'granted') {
+                    document.getElementById('tokenResult').innerHTML = '<p class="info">알림 권한이 허용되었습니다. 토큰을 발급받는 중...</p>';
+
+                    // 백엔드에서 받아온 VAPID 키 사용
+                    const token = await getToken(messaging, {
+                        vapidKey: firebaseConfig.vapidKey
+                    });
+
+                    if (token) {
+                        currentFcmToken = token;
+                        document.getElementById('fcmToken').value = token;
+                        document.getElementById('tokenResult').innerHTML = '<p class="success">✅ FCM 토큰 발급 성공!</p>';
+                        document.getElementById('saveToken').disabled = false;
+
+                        console.log('FCM Token:', token);
+                    } else {
+                        document.getElementById('tokenResult').innerHTML = '<p class="error">토큰을 가져올 수 없습니다. VAPID 키를 설정하세요.</p>';
+                    }
+                } else {
+                    document.getElementById('tokenResult').innerHTML = '<p class="error">❌ 알림 권한이 거부되었습니다.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.code === 'messaging/unsupported-browser') {
+                    document.getElementById('tokenResult').innerHTML = '<p class="error">❌ 이 브라우저는 FCM을 지원하지 않습니다. Chrome, Firefox, Edge를 사용하세요.</p>';
+                } else if (error.code === 'messaging/failed-service-worker-registration') {
+                    document.getElementById('tokenResult').innerHTML = '<p class="error">❌ Service Worker 등록 실패. firebase-messaging-sw.js 파일이 필요합니다.</p>';
+                } else {
+                    document.getElementById('tokenResult').innerHTML = `<p class="error">❌ 에러: ${error.message}</p>`;
+                }
+            }
+        });
+
+        // 백엔드에 토큰 저장
+        document.getElementById('saveToken').addEventListener('click', async () => {
+            const jwtToken = document.getElementById('jwtToken').value.trim();
+
+            if (!jwtToken) {
+                document.getElementById('saveResult').innerHTML = '<p class="error">JWT 토큰을 입력하세요.</p>';
+                return;
+            }
+
+            if (!currentFcmToken) {
+                document.getElementById('saveResult').innerHTML = '<p class="error">FCM 토큰을 먼저 발급받으세요.</p>';
+                return;
+            }
+
+            try {
+                document.getElementById('saveResult').innerHTML = '<p class="info">토큰을 저장하는 중...</p>';
+
+                const response = await fetch('http://localhost:8080/fcm/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': jwtToken.startsWith('Bearer ') ? jwtToken : `Bearer ${jwtToken}`
+                    },
+                    body: JSON.stringify({
+                        fcmToken: currentFcmToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('saveResult').innerHTML = `<p class="success">✅ 토큰 저장 성공!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('saveResult').innerHTML = `<p class="error">❌ 저장 실패: ${data.message || '알 수 없는 오류'}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('saveResult').innerHTML = `<p class="error">❌ 네트워크 에러: ${error.message}<br>백엔드 서버가 실행 중인지 확인하세요.</p>`;
+            }
+        });
+
+        // 페이지 로드 시 localStorage에서 JWT 토큰 자동 입력
+        window.addEventListener('load', () => {
+            const savedToken = localStorage.getItem('jwtToken');
+            if (savedToken) {
+                document.getElementById('jwtToken').value = savedToken;
+                console.log('✅ 저장된 JWT 토큰을 자동으로 입력했습니다.');
+            }
+        });
+    </script>
+</body>
+</html>
