@@ -2,6 +2,7 @@ package com.store.popup.notification.domain;
 
 import com.store.popup.common.domain.BaseTimeEntity;
 import com.store.popup.member.domain.Member;
+import com.store.popup.notification.dto.NotificationResDto;
 import jakarta.persistence.*;
 import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
@@ -44,4 +45,17 @@ public class FcmNotification extends BaseTimeEntity {
 
     private String url;
 
+    public NotificationResDto listFromEntity() {
+        return NotificationResDto.builder()
+                .id(this.id)
+                .memberEmail(this.member.getMemberEmail())
+                .title(this.title)
+                .content(this.content)
+                .isRead(this.isRead)
+                .type(this.type)
+                .refId(this.refId)
+                .url(this.url)
+                .createdAt(this.getCreatedAt())
+                .build();
+    }
 }
