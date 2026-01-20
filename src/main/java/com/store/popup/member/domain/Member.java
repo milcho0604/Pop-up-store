@@ -88,6 +88,12 @@ public class Member extends BaseTimeEntity {
         return this;
     }
 
+    // fcm 토큰 삭제
+    public Member setFcmToken() {
+        this.fcmToken = null;
+        return this;
+    }
+
     public Member updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
         return this;
@@ -139,11 +145,6 @@ public class Member extends BaseTimeEntity {
     // 탈퇴 처리 메서드
     public void deleteAccount() {
         this.setDeletedTimeAt(LocalDateTime.now());  // 현재 시간을 삭제 시간으로 설정
-    }
-
-    //    노쇼 카운트 초기화
-    public void clearNoShowCount() {
-        this.noShowCount = 0;
     }
 
     // 유저 목록 조회
