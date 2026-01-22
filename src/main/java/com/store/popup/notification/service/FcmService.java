@@ -2,11 +2,14 @@ package com.store.popup.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.WebpushConfig;
+import com.google.firebase.messaging.WebpushNotification;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.notification.domain.FcmNotification;
 import com.store.popup.notification.domain.Type;
 import com.store.popup.notification.dto.FcmTokenSaveRequest;
+import com.store.popup.notification.dto.SendFcmReqDto;
 import com.store.popup.notification.repository.NotificationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,22 +35,33 @@ public class FcmService {
     }
 
     // 알림 발송(DB save)
-    public void sendMessage(String title, String body, Type type, Long refId) {
-        Member member = getCurrentMember();
-        if (refId == null) {
-            return;
-        }
+    public void sendMessage(SendFcmReqDto dto) {
+        Member member = memberRepository.findByMemberEmailOrThrow(dto.getMemberEmail());
 
-        FcmNotification notification = FcmNotification.create(member, title, body, type, refId);
+        FcmNotification notification = FcmNotification.create(member, dto.getTitle(), dto.getContent(), dto.getType(), dto.getRefId());
         notificationRepository.save(notification);
-
-        sendFcmMessage(notification, member.getFcmToken());
+        if(member.getFcmToken() != null) {
+            sendFcmMessage(notification, member.getFcmToken());
+        }
     }
 
     // fccm으로 메시지 발송)
     private void sendFcmMessage(FcmNotification notification, String token) {
+//        Message message = Message.builder()
+//                .setWebpushConfig(WebpushConfig.builder()
+//                        .setNotification(WebpushNotification.builder()
+//                                .setTitle(notification.getTitle())
+//                                .setBody(notification.getContent())
+//                                .build())
+//                        .build())
+//                .putData("url", notification.getUrl()) //이동할 url 추가
+//                .putData("notificationId", String.valueOf(notification.getId()))
+//                .setToken(token)
+//                .build();
         Message message = notification.toFcmMessage(token);
+
         log.debug("Sending FCM message: {}", message);
+        System.out.println("Sending FCM message: " + message);
 
         try {
             String response = FirebaseMessaging.getInstance().sendAsync(message).get();

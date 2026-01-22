@@ -6,6 +6,7 @@ import com.store.popup.notification.domain.FcmNotification;
 import com.store.popup.notification.domain.Type;
 import com.store.popup.notification.dto.FcmTokenSaveRequest;
 import com.store.popup.notification.dto.NotificationResDto;
+import com.store.popup.notification.dto.SendFcmReqDto;
 import com.store.popup.notification.service.FcmService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -40,9 +41,9 @@ public class FcmController {
 
     // TODO : 로직 분리 고민
     @PostMapping("/send")
-    public ResponseEntity<?> sendNotification(@RequestBody String memberEmail, @RequestBody String title, String body, Type type, Long id){
-        fcmService.sendMessage(title, body, type, id);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "fcm 메세지 전송 성공", title + ": " + type);
+    public ResponseEntity<?> sendNotification(@RequestBody SendFcmReqDto dto) {
+        fcmService.sendMessage(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "fcm 메세지 전송 성공",    dto.getTitle() + ": " + dto.getType());
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
