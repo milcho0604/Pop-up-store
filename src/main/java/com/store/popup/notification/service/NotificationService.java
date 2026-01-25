@@ -4,6 +4,7 @@ import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.notification.domain.FcmNotification;
 import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.dto.NotificationCountResDto;
 import com.store.popup.notification.dto.NotificationResDto;
 import com.store.popup.notification.repository.NotificationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,6 +36,14 @@ public class NotificationService {
         return notifications.map(FcmNotification::toResponseDto);
     }
 
+    // 알림 리스트 조회
+    public Page<NotificationResDto> unReadNotiList(Pageable pageable) {
+        Member member = getCurrentMember();
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        Page<FcmNotification> notifications = notificationRepository.findByMemberIdAndReadFalseAndCreatedAtAfter(member.getId(), sevenDaysAgo, pageable);
+        return notifications.map(FcmNotification::toResponseDto);
+    }
+
     // 단건 읽음 처리
     public FcmNotification read(Long id) {
         FcmNotification fcmNotification = notificationRepository.findById(id)
@@ -54,6 +63,21 @@ public class NotificationService {
     public int readAll() {
         Member member = getCurrentMember();
         return notificationRepository.markAllAsRead(member.getId());
+    }
+
+    // 알림 개수 조회
+    @Transactional(readOnly = true)
+    public NotificationCountResDto getCount() {
+        Member member = getCurrentMember();
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        long total = notificationRepository.countByMemberIdAndCreatedAtAfter(member.getId(), sevenDaysAgo);
+        long unread = notificationRepository.countByMemberIdAndIsReadFalseAndCreatedAtAfter(member.getId(), sevenDaysAgo);
+
+        return NotificationCountResDto.builder()
+                .total(total)
+                .unread(unread)
+                .build();
     }
 
     // 공통 메서드

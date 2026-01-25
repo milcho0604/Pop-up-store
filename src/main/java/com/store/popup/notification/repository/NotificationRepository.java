@@ -17,6 +17,8 @@ public interface NotificationRepository extends JpaRepository<FcmNotification, L
 
     Page<FcmNotification> findByMemberIdAndCreatedAtAfter(Long memberId, LocalDateTime dateTime, Pageable pageable);
 
+    Page<FcmNotification> findByMemberIdAndReadFalseAndCreatedAtAfter(Long memberId, LocalDateTime dateTime, Pageable pageable);
+
     @Modifying
     @Query("UPDATE FcmNotification n SET n.isRead = true WHERE n.id IN :ids AND n.member.id = :memberId")
     int markAsReadByIds(@Param("ids") List<Long> ids, @Param("memberId") Long memberId);
@@ -24,4 +26,8 @@ public interface NotificationRepository extends JpaRepository<FcmNotification, L
     @Modifying
     @Query("UPDATE FcmNotification n SET n.isRead = true WHERE n.member.id = :memberId AND n.isRead = false")
     int markAllAsRead(@Param("memberId") Long memberId);
+
+    long countByMemberIdAndCreatedAtAfter(Long memberId, LocalDateTime dateTime);
+
+    long countByMemberIdAndIsReadFalseAndCreatedAtAfter(Long memberId, LocalDateTime dateTime);
 }

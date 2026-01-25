@@ -3,6 +3,7 @@ package com.store.popup.notification.controller;
 import com.store.popup.common.dto.CommonResDto;
 import com.store.popup.notification.domain.FcmNotification;
 import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.dto.NotificationCountResDto;
 import com.store.popup.notification.dto.NotificationResDto;
 import com.store.popup.notification.service.FcmService;
 import com.store.popup.notification.service.NotificationService;
@@ -28,6 +29,13 @@ public class NotificationController {
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK,"알림 조회 성공",notificationResList),HttpStatus.OK);
     }
 
+    // 알림 리스트
+    @GetMapping("/un-read/list")
+    public ResponseEntity<CommonResDto> unReadNotis(@PageableDefault(size = 10) Pageable pageable) {
+        Page<NotificationResDto> notificationResList = notificationService.unReadNotiList(pageable);
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK,"알림 조회 성공",notificationResList),HttpStatus.OK);
+    }
+
     // 단건 읽음 처리
     @PatchMapping("/read/{id}")
     public ResponseEntity<CommonResDto> read(@PathVariable Long id) {
@@ -47,5 +55,12 @@ public class NotificationController {
     public ResponseEntity<CommonResDto> readAll() {
         int count = notificationService.readAll();
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "알림 " + count + "건 읽음 처리 성공", count), HttpStatus.OK);
+    }
+
+    // 알림 개수 조회
+    @GetMapping("/count")
+    public ResponseEntity<CommonResDto> getCount() {
+        NotificationCountResDto countDto = notificationService.getCount();
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "알림 개수 조회 성공", countDto), HttpStatus.OK);
     }
 }
