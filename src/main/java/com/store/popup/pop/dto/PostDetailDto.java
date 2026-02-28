@@ -55,7 +55,14 @@ public class PostDetailDto {
     // 상세 영업 정보
     private PostDetailResDto businessInfo;
 
+    // 현재 로그인 유저의 좋아요 여부
+    private boolean isLiked;
+
     public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount){
+        return fromEntity(post, viewCount, likeCount, false);
+    }
+
+    public static PostDetailDto fromEntity(Post post, Long viewCount, Long likeCount, boolean isLiked){
         return PostDetailDto.builder()
                 .id(post.getId())
                 .memberEmail(post.getMember().getMemberEmail())
@@ -85,6 +92,7 @@ public class PostDetailDto {
                         .collect(Collectors.toList()) : null)
                 .businessInfo(post.getPostDetail() != null ?
                     PostDetailResDto.fromEntity(post.getPostDetail()) : null)
+                .isLiked(isLiked)
                 .build();
     }
 

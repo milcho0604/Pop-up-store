@@ -66,6 +66,12 @@ public class PostMetricsService {
         }
     }
 
+    // 특정 유저의 좋아요 여부 확인
+    public boolean isLikedByUser(Long postId, String memberEmail) {
+        String key = "post:likes:" + postId;
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, memberEmail));
+    }
+
     // 좋아요 취소
     public void unlikePost(Long postId) {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -106,7 +112,7 @@ public class PostMetricsService {
 
         postListDtoList.sort(Comparator.comparingDouble(PostListDto::getLikeCount).reversed());
         if (postListDtoList.size() > 3) {
-            postListDtoList = postListDtoList.subList(0,3);
+            postListDtoList = postListDtoList.subList(0,10);
         }
         return postListDtoList;
     }

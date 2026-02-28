@@ -126,7 +126,11 @@ public class PostService {
         Long viewCount = postMetricsService.getPostViews(id);
         Long likeCount = postMetricsService.getPostLikesCount(id);
 
-        PostDetailDto postDetailDto = PostDetailDto.fromEntity(post, viewCount, likeCount);
+        // 현재 로그인 유저의 좋아요 여부 확인 (비로그인 시 false)
+        String principal = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isLiked = !"anonymousUser".equals(principal) && postMetricsService.isLikedByUser(id, principal);
+
+        PostDetailDto postDetailDto = PostDetailDto.fromEntity(post, viewCount, likeCount, isLiked);
         return postDetailDto;
     }
 
