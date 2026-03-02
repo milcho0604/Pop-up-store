@@ -41,9 +41,16 @@ public class PostSpecification {
                 predicates.add(root.get("status").in(searchFilter.getStatuses()));
             }
 
-            // 지역 필터
+            // 지역 필터 (city 정확 일치)
             if (searchFilter.getCity() != null && !searchFilter.getCity().trim().isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("address").get("city"), searchFilter.getCity().trim()));
+            }
+
+            // 동/구 필터 (부분 일치)
+            if (searchFilter.getDong() != null && !searchFilter.getDong().trim().isEmpty()) {
+                String dongKeyword = "%" + searchFilter.getDong().trim() + "%";
+                Predicate dongPredicate = criteriaBuilder.like(root.get("address").get("dong"), dongKeyword);
+                predicates.add(dongPredicate);
             }
 
             // 기간 필터 (해당 기간과 겹치는 팝업 검색)

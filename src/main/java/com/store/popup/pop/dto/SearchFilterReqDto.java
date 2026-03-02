@@ -29,6 +29,9 @@ public class SearchFilterReqDto {
     // 지역 필터
     private String city;
 
+    // 동/구 필터 (부분 일치)
+    private String dong;
+
     // 기간 필터 (해당 기간에 진행 중인 팝업)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
