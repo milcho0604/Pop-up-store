@@ -15,6 +15,7 @@ public class CommentDetailDto {
     private Long id;
     private String nickName;
     private String doctorEmail;
+    private Long memberId;
     private String content;
     private String profileImg;
     private LocalDateTime createdTimeAt;

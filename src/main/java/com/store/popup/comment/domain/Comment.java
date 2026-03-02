@@ -20,6 +20,7 @@ public class Comment extends BaseTimeEntity {
     private Long id;
     @Column(nullable = false)
     private String memberEmail; //post 작성자 / 의사
+    private Long memberId;
     @Column(nullable = false, length = 3000)
     private String content;
 
@@ -51,6 +52,7 @@ public class Comment extends BaseTimeEntity {
                 .id(this.id)
                 .content(this.content)
                 .doctorEmail(this.memberEmail)
+                .memberId(this.memberId)
                 .nickName(this.nickName)
                 .parentId(this.parent != null ? this.parent.getId() : null)
                 .profileImg(this.profileImg)

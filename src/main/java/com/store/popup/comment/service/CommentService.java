@@ -42,7 +42,7 @@ public class CommentService {
 
         if (dto.getPostId() != null){
             Post post = postRepository.findById(dto.getPostId()).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 post입니다."));
-            savedComment = dto.toEntity(post, null, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl());
+            savedComment = dto.toEntity(post, null, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl(), member.getId());
             commentRepository.save(savedComment);
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");
@@ -65,7 +65,7 @@ public class CommentService {
             if(parentComment.getParent() != null){
                 throw new IllegalArgumentException("대댓글에는 댓글이 허용되지 않습니다.");
             }
-            savedComment = dto.toEntity(post, parentComment, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl());
+            savedComment = dto.toEntity(post, parentComment, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl(), member.getId());
             commentRepository.save(savedComment);
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");

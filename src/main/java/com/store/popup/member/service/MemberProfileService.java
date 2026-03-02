@@ -6,6 +6,7 @@ import com.store.popup.member.domain.Member;
 import com.store.popup.member.dto.MemberProfileResDto;
 import com.store.popup.member.dto.MemberProfileUpdateReqDto;
 import com.store.popup.member.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +34,14 @@ public class MemberProfileService {
     @Transactional(readOnly = true)
     public MemberProfileResDto getMyProfile() {
         Member member = getCurrentMember();
+        return MemberProfileResDto.fromEntity(member);
+    }
+
+    // 특정 멤버 프로필 조회 (공개)
+    @Transactional(readOnly = true)
+    public MemberProfileResDto getProfileById(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
         return MemberProfileResDto.fromEntity(member);
     }
 

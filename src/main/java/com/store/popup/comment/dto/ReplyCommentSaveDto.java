@@ -19,10 +19,11 @@ public class ReplyCommentSaveDto {
     @NotEmpty(message = "content is essential")
     private String content;
 
-    public Comment toEntity(Post post, Comment parent, String writerEmail, String nickName, String profileImg){
+    public Comment toEntity(Post post, Comment parent, String writerEmail, String nickName, String profileImg, Long memberId){
         return Comment.builder()
                 .post(post)
                 .memberEmail(writerEmail)
+                .memberId(memberId)
                 .content(this.content)
                 .nickName(nickName)
                 .profileImg(profileImg)
