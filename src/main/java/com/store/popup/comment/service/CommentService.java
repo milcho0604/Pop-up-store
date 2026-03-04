@@ -8,6 +8,8 @@ import com.store.popup.comment.dto.ReplyCommentSaveDto;
 import com.store.popup.comment.repository.CommentRepository;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.service.MemberAuthService;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +30,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final MemberAuthService memberAuthService;
     private final PostRepository postRepository;
+    private final FcmService fcmService;
 
     //    댓글 작성 메소드
     public Comment createComment(CommentSaveDto dto){
@@ -44,6 +47,14 @@ public class CommentService {
             Post post = postRepository.findById(dto.getPostId()).orElseThrow(()-> new EntityNotFoundException("존재하지 않는 post입니다."));
             savedComment = dto.toEntity(post, null, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl(), member.getId());
             commentRepository.save(savedComment);
+
+            // 팝업 작성자에게 댓글 알림 (자기 자신 제외)
+            String postAuthorEmail = post.getMember().getMemberEmail();
+            if (!postAuthorEmail.equals(member.getMemberEmail())) {
+                fcmService.notify(postAuthorEmail, "새 댓글",
+                        member.getNickname() + "님이 댓글을 남겼습니다: " + dto.getContent(),
+                        Type.POST, post.getId());
+            }
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");
         }
@@ -67,6 +78,13 @@ public class CommentService {
             }
             savedComment = dto.toEntity(post, parentComment, member.getMemberEmail(), member.getNickname(), member.getProfileImgUrl(), member.getId());
             commentRepository.save(savedComment);
+
+            // 원댓글 작성자에게 대댓글 알림 (자기 자신 제외)
+            if (!parentComment.getMemberEmail().equals(member.getMemberEmail())) {
+                fcmService.notify(parentComment.getMemberEmail(), "새 대댓글",
+                        member.getNickname() + "님이 답글을 남겼습니다: " + dto.getContent(),
+                        Type.COMMENT, post.getId());
+            }
         }else {
             throw new IllegalArgumentException("답변을 위한 POST ID가 필요합니다.");
         }

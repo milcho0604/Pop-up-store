@@ -2,9 +2,11 @@ package com.store.popup.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
+import com.store.popup.common.enumdir.Role;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.notification.domain.FcmNotification;
+import com.store.popup.notification.domain.Type;
 import com.store.popup.notification.dto.FcmTokenSaveRequest;
 import com.store.popup.notification.dto.SendFcmReqDto;
 import com.store.popup.notification.exception.FcmException;
@@ -75,6 +77,27 @@ public class FcmService {
             log.error("FCM 메시지 전송 실패: {}", e.getCause().getMessage(), e.getCause());
             throw FcmException.sendFailed();
         }
+    }
+
+    // 단일 회원에게 알림 전송 (예외 삼킴 - 메인 로직 영향 없음)
+    public void notify(String toEmail, String title, String content, Type type, Long refId) {
+        try {
+            sendMessage(SendFcmReqDto.builder()
+                    .memberEmail(toEmail)
+                    .title(title)
+                    .content(content)
+                    .type(type)
+                    .refId(refId)
+                    .build());
+        } catch (Exception e) {
+            log.warn("알림 전송 실패 ({}): {}", toEmail, e.getMessage());
+        }
+    }
+
+    // 전체 관리자에게 알림 전송
+    public void notifyAdmins(String title, String content, Type type, Long refId) {
+        memberRepository.findByRoleAndDeletedAtIsNull(Role.ADMIN)
+                .forEach(admin -> notify(admin.getMemberEmail(), title, content, type, refId));
     }
 
     // fcm 토큰 삭제

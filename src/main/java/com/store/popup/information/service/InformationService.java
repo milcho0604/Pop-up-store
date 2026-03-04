@@ -10,6 +10,8 @@ import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.dto.InformationSaveDto;
 import com.store.popup.information.dto.InformationUpdateReqDto;
 import com.store.popup.information.repository.InformationRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.tag.domain.Tag;
 import com.store.popup.tag.service.TagService;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,6 +34,7 @@ public class InformationService {
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
     private final TagService tagService;
+    private final FcmService fcmService;
 
     // 고객이 팝업 스토어 제보
     public Information create(InformationSaveDto dto) {
@@ -54,7 +57,14 @@ public class InformationService {
         List<Tag> tags = tagService.findOrCreateTags(dto.getTagNames());
 
         Information information = dto.toEntity(postImgUrl, reporter, tags);
-        return informationRepository.save(information);
+        Information saved = informationRepository.save(information);
+
+        // 관리자에게 제보 알림
+        fcmService.notifyAdmins("새 팝업 제보",
+                reporter.getNickname() + "님이 팝업스토어를 제보했습니다.",
+                Type.REPORT_NOTIFICATION, saved.getId());
+
+        return saved;
     }
 
     // 고객이 자신이 제보한 팝업 스토어 정보 수정

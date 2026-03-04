@@ -9,8 +9,11 @@ import com.store.popup.member.dto.MemberLoginDto;
 import com.store.popup.member.dto.MemberSaveReqDto;
 import com.store.popup.member.dto.PasswordResetDto;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberAuthService {
 
     private final MemberRepository memberRepository;
@@ -27,6 +31,7 @@ public class MemberAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisEmailService redisEmailService;
+    private final FcmService fcmService;
 
     // 인증번호 임의 숫자 4개 생성
     private String generateVerificationCode() {
@@ -64,6 +69,11 @@ public class MemberAuthService {
 
         Member member = saveReqDto.toEntity(passwordEncoder.encode(saveReqDto.getPassword()));
         memberRepository.save(member);
+
+        // 관리자에게 신규 회원가입 알림
+        fcmService.notifyAdmins("신규 회원 가입",
+                member.getNickname() + "님이 가입했습니다.",
+                Type.REGISTER, member.getId());
     }
 
     // 비밀번호 검증

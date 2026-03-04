@@ -27,6 +27,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Page<Member> findAll(Pageable pageable);
     Page<Member> findByRoleAndDeletedAtIsNull(Role role, Pageable pageable);
+    List<Member> findByRoleAndDeletedAtIsNull(Role role);
     //병원별 삭제되지 않은 의사목록
     Optional<Member> findByNameAndPhoneNumber(String name, String phoneNumber);
 

@@ -6,6 +6,8 @@ import com.store.popup.follow.dto.FollowStatsDto;
 import com.store.popup.follow.repository.FollowRepository;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final MemberRepository memberRepository;
+    private final FcmService fcmService;
 
     /**
      * 팔로우하기
@@ -50,6 +53,11 @@ public class FollowService {
 
         followRepository.save(follow);
         log.info("팔로우 성공: {} -> {}", follower.getNickname(), following.getNickname());
+
+        // 팔로우 대상에게 알림
+        fcmService.notify(following.getMemberEmail(), "새 팔로워",
+                follower.getNickname() + "님이 팔로우했습니다.",
+                Type.FOLLOW, follower.getId());
     }
 
     /**
