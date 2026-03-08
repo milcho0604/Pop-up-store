@@ -28,6 +28,9 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     // 사용자의 이메일을 기준으로 삭제되지 않은 게시글 목록 조회
     Page<Post> findByMemberAndDeletedAtIsNull(Member member, Pageable pageable);
 
+    // 특정 회원 ID로 삭제되지 않은 게시글 목록 조회 (공개 프로필용)
+    List<Post> findByMember_IdAndDeletedAtIsNull(Long memberId);
+
     // 중복 체크: 주소와 운영 기간이 동일한 Post가 있는지 확인
     // 생성/변환 시 중복 검사
     boolean existsByAddress_CityAndAddress_StreetAndAddress_ZipcodeAndStartDateAndEndDateAndDeletedAtIsNull(

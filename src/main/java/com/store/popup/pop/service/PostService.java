@@ -112,6 +112,14 @@ public class PostService {
         return posts.map(this::convertToPostListDtoWithMetrics); // redis에서 조회수 및 좋아요 가져오기
     }
 
+    // 특정 회원의 팝업 목록 (공개 프로필용)
+    @Transactional(readOnly = true)
+    public List<PostListDto> getPostsByMemberId(Long memberId) {
+        return postRepository.findByMember_IdAndDeletedAtIsNull(memberId).stream()
+                .map(this::convertToPostListDtoWithMetrics)
+                .collect(Collectors.toList());
+    }
+
     // 팝업 게시글 상세
     @Transactional(readOnly = true)
     public PostDetailDto getPostDetail(Long id){

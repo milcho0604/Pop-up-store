@@ -38,6 +38,14 @@ public class PostController {
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "post 목록을 조회합니다.", postListDtos);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
+    // 특정 회원의 팝업 목록 (공개 프로필용)
+    @GetMapping("/list/member/{memberId}")
+    public ResponseEntity<?> getPostsByMemberId(@PathVariable Long memberId) {
+        List<PostListDto> postListDtos = postService.getPostsByMemberId(memberId);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "회원의 post 목록을 조회합니다.", postListDtos);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
     // 팝업 목록 조회
     @GetMapping("/list/dong")
     public ResponseEntity<?> findPopupsByDong(@RequestParam String dong){
