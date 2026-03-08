@@ -2,12 +2,11 @@ package com.store.popup.notification.controller;
 
 import com.store.popup.common.dto.CommonResDto;
 import com.store.popup.notification.domain.FcmNotification;
-import com.store.popup.notification.domain.Type;
 import com.store.popup.notification.dto.NotificationCountResDto;
 import com.store.popup.notification.dto.NotificationResDto;
-import com.store.popup.notification.service.FcmService;
 import com.store.popup.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/noti")
+@PreAuthorize("isAuthenticated()")
 public class NotificationController {
     private final NotificationService notificationService;
     // 알림 리스트

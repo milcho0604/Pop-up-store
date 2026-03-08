@@ -49,9 +49,9 @@ public class CommentService {
             commentRepository.save(savedComment);
 
             // 팝업 작성자에게 댓글 알림 (자기 자신 제외)
-            String postAuthorEmail = post.getMember().getMemberEmail();
-            if (!postAuthorEmail.equals(member.getMemberEmail())) {
-                fcmService.notify(postAuthorEmail, "새 댓글",
+            Long postAuthorId = post.getMember().getId();
+            if (!postAuthorId.equals(member.getId())) {
+                fcmService.notify(postAuthorId, "새 댓글",
                         member.getNickname() + "님이 댓글을 남겼습니다: " + dto.getContent(),
                         Type.POST, post.getId());
             }
@@ -80,8 +80,8 @@ public class CommentService {
             commentRepository.save(savedComment);
 
             // 원댓글 작성자에게 대댓글 알림 (자기 자신 제외)
-            if (!parentComment.getMemberEmail().equals(member.getMemberEmail())) {
-                fcmService.notify(parentComment.getMemberEmail(), "새 대댓글",
+            if (parentComment.getMemberId() != null && !parentComment.getMemberId().equals(member.getId())) {
+                fcmService.notify(parentComment.getMemberId(), "새 대댓글",
                         member.getNickname() + "님이 답글을 남겼습니다: " + dto.getContent(),
                         Type.COMMENT, post.getId());
             }
@@ -133,4 +133,3 @@ public class CommentService {
     }
 
 }
-

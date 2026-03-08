@@ -29,10 +29,9 @@ dependencies {
     // 기존 의존성
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.netflix.graphql.dgs.codegen:graphql-dgs-codegen-gradle:7.0.3'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
     annotationProcessor 'org.projectlombok:lombok'
 //	mapstruct를 사용하기 위한 의존선 라이브러리
     implementation "org.mapstruct:mapstruct:1.5.3.Final"
@@ -60,7 +59,6 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
     implementation 'org.hibernate.validator:hibernate-validator:7.0.5.Final'
 
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'

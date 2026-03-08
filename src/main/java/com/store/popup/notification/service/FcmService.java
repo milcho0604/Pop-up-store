@@ -8,7 +8,6 @@ import com.store.popup.member.repository.MemberRepository;
 import com.store.popup.notification.domain.FcmNotification;
 import com.store.popup.notification.domain.Type;
 import com.store.popup.notification.dto.FcmTokenSaveRequest;
-import com.store.popup.notification.dto.SendFcmReqDto;
 import com.store.popup.notification.exception.FcmException;
 import com.store.popup.notification.repository.NotificationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,11 +34,19 @@ public class FcmService {
         member.updateFcmToken(dto.getFcmToken());
     }
 
-    // 알림 발송(DB save)
-    public void sendMessage(SendFcmReqDto dto) {
-        Member member = memberRepository.findByMemberEmailOrThrow(dto.getMemberEmail());
+    // 대상 회원에게 알림 생성 + 푸시 발송
+    public void notify(Long toMemberId, String title, String content, Type type, Long refId) {
+        try {
+            Member member = memberRepository.findByIdOrThrow(toMemberId);
+            sendMessage(member, title, content, type, refId);
+        } catch (Exception e) {
+            log.warn("알림 전송 실패 (memberId={}): {}", toMemberId, e.getMessage());
+        }
+    }
 
-        FcmNotification notification = FcmNotification.create(member, dto.getTitle(), dto.getContent(), dto.getType(), dto.getRefId());
+    // 알림 발송(DB save)
+    private void sendMessage(Member member, String title, String content, Type type, Long refId) {
+        FcmNotification notification = FcmNotification.create(member, title, content, type, refId);
         notificationRepository.save(notification);
 
         if (member.getFcmToken() == null || member.getFcmToken().isBlank()) {
@@ -79,25 +86,10 @@ public class FcmService {
         }
     }
 
-    // 단일 회원에게 알림 전송 (예외 삼킴 - 메인 로직 영향 없음)
-    public void notify(String toEmail, String title, String content, Type type, Long refId) {
-        try {
-            sendMessage(SendFcmReqDto.builder()
-                    .memberEmail(toEmail)
-                    .title(title)
-                    .content(content)
-                    .type(type)
-                    .refId(refId)
-                    .build());
-        } catch (Exception e) {
-            log.warn("알림 전송 실패 ({}): {}", toEmail, e.getMessage());
-        }
-    }
-
     // 전체 관리자에게 알림 전송
     public void notifyAdmins(String title, String content, Type type, Long refId) {
         memberRepository.findByRoleAndDeletedAtIsNull(Role.ADMIN)
-                .forEach(admin -> notify(admin.getMemberEmail(), title, content, type, refId));
+                .forEach(admin -> notify(admin.getId(), title, content, type, refId));
     }
 
     // fcm 토큰 삭제

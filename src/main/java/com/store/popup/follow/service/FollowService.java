@@ -55,7 +55,7 @@ public class FollowService {
         log.info("팔로우 성공: {} -> {}", follower.getNickname(), following.getNickname());
 
         // 팔로우 대상에게 알림
-        fcmService.notify(following.getMemberEmail(), "새 팔로워",
+        fcmService.notify(following.getId(), "새 팔로워",
                 follower.getNickname() + "님이 팔로우했습니다.",
                 Type.FOLLOW, follower.getId());
     }
