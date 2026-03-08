@@ -46,11 +46,13 @@ public class PostSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("address").get("city"), searchFilter.getCity().trim()));
             }
 
-            // 동/구 필터 (부분 일치)
+            // 동/구 필터 (부분 일치) - dong, street, city 모두 검색
             if (searchFilter.getDong() != null && !searchFilter.getDong().trim().isEmpty()) {
                 String dongKeyword = "%" + searchFilter.getDong().trim() + "%";
-                Predicate dongPredicate = criteriaBuilder.like(root.get("address").get("dong"), dongKeyword);
-                predicates.add(dongPredicate);
+                Predicate inDong   = criteriaBuilder.like(root.get("address").get("dong"),   dongKeyword);
+                Predicate inStreet = criteriaBuilder.like(root.get("address").get("street"), dongKeyword);
+                Predicate inCity   = criteriaBuilder.like(root.get("address").get("city"),   dongKeyword);
+                predicates.add(criteriaBuilder.or(inDong, inStreet, inCity));
             }
 
             // 기간 필터 (해당 기간과 겹치는 팝업 검색)
