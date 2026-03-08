@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,9 +61,11 @@ public class PostMetricsService {
     public void likePost(Long postId) {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         String key = "post:likes:" + postId;
+        String reverseKey = "member:likes:" + memberEmail;
 
         if (!redisTemplate.opsForSet().isMember(key, memberEmail)) {
             redisTemplate.opsForSet().add(key, memberEmail);
+            redisTemplate.opsForSet().add(reverseKey, postId.toString());
         }
     }
 
@@ -76,10 +79,30 @@ public class PostMetricsService {
     public void unlikePost(Long postId) {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         String key = "post:likes:" + postId;
+        String reverseKey = "member:likes:" + memberEmail;
 
         if (redisTemplate.opsForSet().isMember(key, memberEmail)) {
             redisTemplate.opsForSet().remove(key, memberEmail);
+            redisTemplate.opsForSet().remove(reverseKey, postId.toString());
         }
+    }
+
+    // 내가 좋아요한 팝업 목록
+    public List<PostListDto> getLikedPosts() {
+        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String reverseKey = "member:likes:" + memberEmail;
+
+        Set<Object> postIdSet = redisTemplate.opsForSet().members(reverseKey);
+        if (postIdSet == null || postIdSet.isEmpty()) return List.of();
+
+        List<Long> postIds = postIdSet.stream()
+                .map(id -> Long.parseLong(id.toString()))
+                .collect(Collectors.toList());
+
+        return postRepository.findAllById(postIds).stream()
+                .filter(post -> post.getDeletedAt() == null)
+                .map(post -> post.listFromEntity(getPostViews(post.getId()), getPostLikesCount(post.getId())))
+                .collect(Collectors.toList());
     }
 
     // Redis 좋아요 수 조회

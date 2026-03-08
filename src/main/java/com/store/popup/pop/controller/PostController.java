@@ -53,6 +53,14 @@ public class PostController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
+    // 내가 좋아요한 팝업 리스트
+    @GetMapping("/liked/list")
+    public ResponseEntity<?> likedPostList() {
+        List<PostListDto> postListDtos = postMetricsService.getLikedPosts();
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "좋아요한 post 목록을 조회합니다.", postListDtos);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
     // 내가 작성한 팝업 리스트
     @GetMapping("/my/list")
     public ResponseEntity<?> myPostList(Pageable pageable){
