@@ -21,8 +21,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class FcmNotification extends BaseTimeEntity {
 
-    private static final String BASE_URL = "http://localhost:8081/";
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notification_id")
@@ -63,18 +61,25 @@ public class FcmNotification extends BaseTimeEntity {
     }
 
     private static String buildUrl(Role role, Type type, Long refId) {
-        if (refId == null || !Role.ADMIN.equals(role)) {
-            return null;
+        if (refId == null) return null;
+
+        // 관리자 알림: 어드민 페이지 탭으로 이동
+        if (Role.ADMIN.equals(role)) {
+            return switch (type) {
+                case REGISTER -> "/admin?tab=members";
+                case REPORT_NOTIFICATION, POST_NOTIFICATION -> "/admin?tab=reports";
+                default -> null;
+            };
         }
 
-        String urlType = switch (type) {
-            case REGISTER -> "admin/member/detail/" + refId;
-            case REPORT_NOTIFICATION -> "admin/information/list/" + refId;
-            case POST_NOTIFICATION -> "admin/information/detail/" + refId;
+        // 일반 사용자 알림: 관련 페이지로 이동
+        return switch (type) {
+            case POST, COMMENT, LIKE, REVIEW, POST_NOTIFICATION -> "/popup/" + refId;
+            case FOLLOW -> "/member/" + refId;
+            case VOTE -> "/poll/" + refId;
+            case NOTICE -> "/notice/" + refId;
             default -> null;
         };
-
-        return urlType != null ? BASE_URL + urlType : null;
     }
 
     public Message toFcmMessage(String token) {
