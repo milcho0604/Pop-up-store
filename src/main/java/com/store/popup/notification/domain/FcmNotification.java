@@ -68,13 +68,14 @@ public class FcmNotification extends BaseTimeEntity {
             return switch (type) {
                 case REGISTER -> "/admin?tab=members";
                 case REPORT_NOTIFICATION, POST_NOTIFICATION -> "/admin?tab=reports";
+                case NOTICE -> "/notice/" + refId;
                 default -> null;
             };
         }
 
         // 일반 사용자 알림: 관련 페이지로 이동
         return switch (type) {
-            case POST, COMMENT, LIKE, REVIEW, POST_NOTIFICATION -> "/popup/" + refId;
+            case POST, COMMENT, LIKE, REVIEW, POST_NOTIFICATION, QNA -> "/popup/" + refId;
             case FOLLOW -> "/member/" + refId;
             case VOTE -> "/poll/" + refId;
             case NOTICE -> "/notice/" + refId;

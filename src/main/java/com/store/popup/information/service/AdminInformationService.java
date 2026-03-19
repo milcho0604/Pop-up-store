@@ -9,6 +9,8 @@ import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.information.dto.InformationListDto;
 import com.store.popup.information.repository.InformationRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class AdminInformationService {
     private final InformationRepository informationRepository;
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final FcmService fcmService;
 
     // 관리자가 제보 목록 조회 (페이지네이션)
     @Transactional(readOnly = true)
@@ -99,6 +102,13 @@ public class AdminInformationService {
 
         // 제보 상태를 REJECTED로 변경 (더티 체킹으로 자동 저장됨)
         information.reject();
+        fcmService.notify(
+                information.getReporter().getId(),
+                "제보 검토 결과",
+                "'" + information.getTitle() + "' 제보가 반려되었습니다.",
+                Type.POST_NOTIFICATION,
+                null
+        );
 
         return InformationDetailDto.fromEntity(information);
     }
@@ -119,4 +129,3 @@ public class AdminInformationService {
         information.updateDeleteAt();
     }
 }
-

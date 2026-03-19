@@ -92,6 +92,12 @@ public class FcmService {
                 .forEach(admin -> notify(admin.getId(), title, content, type, refId));
     }
 
+    // 전체 활성 회원에게 알림 전송
+    public void notifyMembers(String title, String content, Type type, Long refId) {
+        memberRepository.findByDeletedAtIsNull()
+                .forEach(member -> notify(member.getId(), title, content, type, refId));
+    }
+
     // fcm 토큰 삭제
     public void logout() {
         // 회원 조회

@@ -3,6 +3,8 @@ package com.store.popup.qna.service;
 import com.store.popup.common.enumdir.Role;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.repository.PostRepository;
 import com.store.popup.qna.domain.Answer;
@@ -33,6 +35,7 @@ public class QnAService {
     private final AnswerRepository answerRepository;
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final FcmService fcmService;
 
     // ========== 질문 관련 ==========
 
@@ -51,6 +54,17 @@ public class QnAService {
                 .build();
 
         Question savedQuestion = questionRepository.save(question);
+
+        if (!post.getMember().getId().equals(member.getId())) {
+            fcmService.notify(
+                    post.getMember().getId(),
+                    "새 질문",
+                    member.getNickname() + "님이 Q&A 질문을 남겼습니다.",
+                    Type.QNA,
+                    post.getId()
+            );
+        }
+
         return QuestionDto.fromEntity(savedQuestion);
     }
 
@@ -135,6 +149,16 @@ public class QnAService {
                 .build();
 
         answerRepository.save(answer);
+
+        if (!question.getMember().getId().equals(member.getId())) {
+            fcmService.notify(
+                    question.getMember().getId(),
+                    "Q&A 답변 등록",
+                    question.getPost().getTitle() + " 질문에 답변이 등록되었습니다.",
+                    Type.QNA,
+                    question.getPost().getId()
+            );
+        }
 
         // 최신 질문 정보 반환
         Question updatedQuestion = questionRepository.findByIdWithAnswer(questionId)

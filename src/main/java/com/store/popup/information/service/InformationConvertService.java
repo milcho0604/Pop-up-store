@@ -5,6 +5,8 @@ import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.information.dto.InformationDetailDto;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.information.domain.Information;
 import com.store.popup.information.domain.InformationStatus;
 import com.store.popup.pop.domain.Post;
@@ -34,6 +36,7 @@ public class InformationConvertService {
     private final PostRepository postRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
     private final PostDuplicateValidator postDuplicateValidator;
+    private final FcmService fcmService;
 
     // Information을 Post로 변환 (단일)
     @Transactional
@@ -66,6 +69,7 @@ public class InformationConvertService {
         // Information 상태를 APPROVED로 변경
         information.approve();
         informationService.save(information);
+        notifyReporterApproval(information, savedPost);
 
         return savedPost;
     }
@@ -108,6 +112,7 @@ public class InformationConvertService {
                 // Information 상태를 APPROVED로 변경
                 information.approve();
                 informationService.save(information);
+                notifyReporterApproval(information, savedPost);
 
             } catch (Exception e) {
                 errors.add("ID " + information.getId() + ": " + e.getMessage());
@@ -173,6 +178,7 @@ public class InformationConvertService {
         // Information 상태를 APPROVED로 변경
         information.approve();
         informationService.save(information);
+        notifyReporterApproval(information, savedPost);
 
         return savedPost;
     }
@@ -239,6 +245,7 @@ public class InformationConvertService {
                 // Information 상태를 APPROVED로 변경
                 information.approve();
                 informationService.save(information);
+                notifyReporterApproval(information, savedPost);
 
             } catch (Exception e) {
                 errors.add("ID " + information.getId() + ": " + e.getMessage());
@@ -269,6 +276,16 @@ public class InformationConvertService {
     private Member findMemberByEmail(String email){
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+    }
+
+    private void notifyReporterApproval(Information information, Post savedPost) {
+        fcmService.notify(
+                information.getReporter().getId(),
+                "제보 승인 완료",
+                "'" + information.getTitle() + "' 제보가 승인되어 팝업으로 등록되었습니다.",
+                Type.POST_NOTIFICATION,
+                savedPost.getId()
+        );
     }
 
     // 승인 취소: Information을 PENDING으로 되돌리고 연결된 Post를 soft delete

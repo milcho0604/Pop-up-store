@@ -1,8 +1,13 @@
 package com.store.popup.pop.service;
 
+import com.store.popup.member.domain.Member;
+import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.dto.PostListDto;
 import com.store.popup.pop.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +30,8 @@ public class PostMetricsService {
     @Qualifier("redisTemplateDb7")
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostRepository postRepository;
+    private final MemberRepository memberRepository;
+    private final FcmService fcmService;
     // Redis 조회수 증가 로직
     public void incrementPostViews(Long postId) {
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -66,6 +73,24 @@ public class PostMetricsService {
         if (!redisTemplate.opsForSet().isMember(key, memberEmail)) {
             redisTemplate.opsForSet().add(key, memberEmail);
             redisTemplate.opsForSet().add(reverseKey, postId.toString());
+
+            if ("anonymousUser".equals(memberEmail)) {
+                return;
+            }
+
+            Member member = memberRepository.findByMemberEmailOrThrow(memberEmail);
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 post입니다."));
+
+            if (!post.getMember().getId().equals(member.getId())) {
+                fcmService.notify(
+                        post.getMember().getId(),
+                        "새 좋아요",
+                        member.getNickname() + "님이 좋아요를 눌렀습니다.",
+                        Type.LIKE,
+                        post.getId()
+                );
+            }
         }
     }
 

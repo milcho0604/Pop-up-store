@@ -3,6 +3,8 @@ package com.store.popup.review.service;
 import com.store.popup.common.util.S3ClientFileUpload;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.pop.domain.Post;
 import com.store.popup.pop.repository.PostRepository;
 import com.store.popup.review.domain.Review;
@@ -34,6 +36,7 @@ public class ReviewService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final S3ClientFileUpload s3ClientFileUpload;
+    private final FcmService fcmService;
 
     // 리뷰 작성
     public ReviewResDto createReview(Long postId, ReviewSaveDto dto, MultipartFile reviewImage) {
@@ -60,6 +63,16 @@ public class ReviewService {
         // 리뷰 생성
         Review review = dto.toEntity(post, member, reviewImgUrl);
         Review savedReview = reviewRepository.save(review);
+
+        if (!post.getMember().getId().equals(member.getId())) {
+            fcmService.notify(
+                    post.getMember().getId(),
+                    "새 리뷰",
+                    member.getNickname() + "님이 리뷰를 남겼습니다.",
+                    Type.REVIEW,
+                    post.getId()
+            );
+        }
 
         // Post의 평균 평점 업데이트
         updatePostRating(postId);

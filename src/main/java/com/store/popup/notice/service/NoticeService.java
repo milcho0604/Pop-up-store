@@ -4,6 +4,8 @@ import com.store.popup.common.enumdir.NoticeType;
 import com.store.popup.common.enumdir.Role;
 import com.store.popup.member.domain.Member;
 import com.store.popup.member.repository.MemberRepository;
+import com.store.popup.notification.domain.Type;
+import com.store.popup.notification.service.FcmService;
 import com.store.popup.notice.domain.Notice;
 import com.store.popup.notice.dto.NoticeResDto;
 import com.store.popup.notice.dto.NoticeSaveDto;
@@ -31,6 +33,7 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final MemberRepository memberRepository;
+    private final FcmService fcmService;
 
     // ========== 관리자 전용 기능 ==========
 
@@ -46,6 +49,12 @@ public class NoticeService {
 
         Notice notice = dto.toEntity(admin);
         Notice savedNotice = noticeRepository.save(notice);
+        fcmService.notifyMembers(
+                "새 공지사항",
+                savedNotice.getTitle(),
+                Type.NOTICE,
+                savedNotice.getId()
+        );
 
         return NoticeResDto.fromEntity(savedNotice);
     }
