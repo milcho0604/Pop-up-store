@@ -283,7 +283,7 @@ public class InformationConvertService {
                 information.getReporter().getId(),
                 "제보 승인 완료",
                 "'" + information.getTitle() + "' 제보가 승인되어 팝업으로 등록되었습니다.",
-                Type.POST_NOTIFICATION,
+                Type.INFORMATION_APPROVED,
                 savedPost.getId()
         );
     }

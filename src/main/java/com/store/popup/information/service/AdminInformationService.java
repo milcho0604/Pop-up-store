@@ -106,7 +106,7 @@ public class AdminInformationService {
                 information.getReporter().getId(),
                 "제보 검토 결과",
                 "'" + information.getTitle() + "' 제보가 반려되었습니다.",
-                Type.POST_NOTIFICATION,
+                Type.INFORMATION_REJECTED,
                 null
         );
 

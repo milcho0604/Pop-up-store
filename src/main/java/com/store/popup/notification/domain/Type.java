@@ -5,8 +5,12 @@ public enum Type {
     REGISTER,
 //    팝업 제보 발생 시 병원 admin에게 가는 알림 NOTIFICATION
     REPORT_NOTIFICATION,
-//    팝업 등록 완료 시 admin에게 가는 알림
+//    레거시 팝업 등록 알림 타입
     POST_NOTIFICATION,
+//    제보 승인 완료 알림
+    INFORMATION_APPROVED,
+//    제보 반려 알림
+    INFORMATION_REJECTED,
 //    게시글에 댓글이 달렸을 경우 게시글 작성자에게 가는 알림
     POST,
 //    댓글에 대한 답글이 달렸을 경우 기존 댓글 작성자에게 가는 알림
